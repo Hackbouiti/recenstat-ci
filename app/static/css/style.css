@@ -383,3 +383,75 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
   margin-bottom: 0.25rem;
   font-size: 0.9rem;
 }
+
+/* ── Barre de navigation mobile (bottom nav) ─────────── */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--ink);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  border-top: 1px solid rgba(255,255,255,0.12);
+  z-index: 1050;
+  /* safe area iPhone X+ */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--stone2);
+  text-decoration: none !important;
+  font-size: 0.62rem;
+  font-family: 'Lato', sans-serif;
+  font-weight: 400;
+  gap: 3px;
+  flex: 1;
+  padding: 6px 2px;
+  border-top: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item i {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.mobile-nav-item span {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-item:active {
+  color: var(--parch);
+  text-decoration: none !important;
+}
+
+.mobile-nav-item.active {
+  color: var(--em-md);
+  border-top-color: var(--em-md);
+}
+
+.mobile-nav-logout {
+  color: var(--orange-lt) !important;
+}
+
+.mobile-nav-logout:hover,
+.mobile-nav-logout:active {
+  color: var(--orange) !important;
+}
+
+/* Décaler le FAB au-dessus de la bottom nav sur mobile */
+@media (max-width: 991.98px) {
+  .fab {
+    bottom: 80px;
+  }
+}

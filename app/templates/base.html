@@ -35,28 +35,14 @@
 <div class="tricolor-bar"></div>
 
 {% if current_user.is_authenticated %}
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg">
+
+<!-- Navbar desktop uniquement -->
+<nav class="navbar navbar-expand-lg d-none d-lg-flex">
   <div class="container-fluid px-3">
     <a class="navbar-brand" href="{{ url_for('auth.index') }}">
       <i class="bi bi-clipboard-data me-1"></i>Recen<span class="accent">Stat</span>-CI
     </a>
-    <!-- Infos utilisateur + déconnexion visible sur mobile -->
-    <div class="d-flex d-lg-none ms-auto align-items-center gap-2 me-2">
-      <span style="font-size:0.75rem; color:var(--stone2);">
-        {{ current_user.prenom }}
-      </span>
-      <a href="{{ url_for('auth.logout') }}"
-         class="btn btn-sm"
-         style="background:rgba(201,90,26,0.2); color:#ffb899; border:1px solid rgba(201,90,26,0.4); min-height:36px; min-width:36px; display:flex; align-items:center; justify-content:center;"
-         title="Se déconnecter">
-        <i class="bi bi-box-arrow-right"></i>
-      </a>
-    </div>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navMenu">
+    <div class="collapse navbar-collapse">
       <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
         {% if current_user.role in ('ADMINISTRATEUR', 'SUPERVISEUR') %}
         <li class="nav-item">
@@ -65,8 +51,6 @@
             <i class="bi bi-speedometer2 me-1"></i>Administration
           </a>
         </li>
-        {% endif %}
-        {% if current_user.role in ('ADMINISTRATEUR', 'SUPERVISEUR') %}
         <li class="nav-item">
           <a class="nav-link {% if request.endpoint == 'stats.tableau_bord' %}active{% endif %}"
              href="{{ url_for('stats.tableau_bord') }}">
@@ -76,8 +60,7 @@
         {% endif %}
         {% if current_user.role == 'ENQUETEUR' %}
         <li class="nav-item">
-          <a class="nav-link {% if request.endpoint and request.endpoint.startswith('enqueteur.') %}active{% endif %}"
-             href="{{ url_for('enqueteur.dashboard') }}">
+          <a class="nav-link" href="{{ url_for('enqueteur.dashboard') }}">
             <i class="bi bi-house-door me-1"></i>Mes zones
           </a>
         </li>
@@ -97,11 +80,23 @@
   </div>
 </nav>
 
+<!-- Header mobile -->
+<div class="d-flex d-lg-none align-items-center justify-content-between px-3 py-2"
+     style="background:var(--ink); margin-top:4px; min-height:52px;">
+  <a href="{{ url_for('auth.index') }}"
+     style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; color:var(--parch); text-decoration:none;">
+    <i class="bi bi-clipboard-data me-1" style="color:var(--orange);"></i>Recen<span style="color:var(--orange);">Stat</span>-CI
+  </a>
+  <span style="font-size:0.78rem; color:var(--stone2);">
+    {{ current_user.prenom }} {{ current_user.nom }}
+  </span>
+</div>
+
 <!-- Layout -->
 <div class="app-wrapper">
   {% block sidebar %}{% endblock %}
 
-  <div class="main-content">
+  <div class="main-content" style="padding-bottom: 80px;">
     <!-- Flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -119,6 +114,62 @@
     {% block content %}{% endblock %}
   </div>
 </div>
+
+<!-- ═══ BARRE DE NAVIGATION MOBILE (bottom nav) ═══════════════════════════ -->
+<nav class="mobile-bottom-nav d-lg-none">
+
+  {% if current_user.role in ('ADMINISTRATEUR', 'SUPERVISEUR') %}
+  <a href="{{ url_for('admin.dashboard') }}"
+     class="mobile-nav-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+    <i class="bi bi-speedometer2"></i>
+    <span>Accueil</span>
+  </a>
+
+  <a href="{{ url_for('admin.supervision') }}"
+     class="mobile-nav-item {% if request.endpoint == 'admin.supervision' %}active{% endif %}">
+    <i class="bi bi-check2-circle"></i>
+    <span>Supervision</span>
+  </a>
+
+  <a href="{{ url_for('admin.donnees') }}"
+     class="mobile-nav-item {% if request.endpoint == 'admin.donnees' %}active{% endif %}">
+    <i class="bi bi-table"></i>
+    <span>Données</span>
+  </a>
+
+  <a href="{{ url_for('stats.tableau_bord') }}"
+     class="mobile-nav-item {% if request.endpoint == 'stats.tableau_bord' %}active{% endif %}">
+    <i class="bi bi-bar-chart-line"></i>
+    <span>Stats</span>
+  </a>
+
+  <a href="{{ url_for('admin.users') }}"
+     class="mobile-nav-item {% if request.endpoint == 'admin.users' %}active{% endif %}">
+    <i class="bi bi-people"></i>
+    <span>Utilisateurs</span>
+  </a>
+
+  {% elif current_user.role == 'ENQUETEUR' %}
+  <a href="{{ url_for('enqueteur.dashboard') }}"
+     class="mobile-nav-item {% if request.endpoint == 'enqueteur.dashboard' %}active{% endif %}">
+    <i class="bi bi-house"></i>
+    <span>Accueil</span>
+  </a>
+
+  <a href="{{ url_for('enqueteur.nouveau_menage') }}"
+     class="mobile-nav-item {% if request.endpoint == 'enqueteur.nouveau_menage' %}active{% endif %}">
+    <i class="bi bi-plus-circle"></i>
+    <span>Nouveau</span>
+  </a>
+  {% endif %}
+
+  <!-- Déconnexion — toujours visible -->
+  <a href="{{ url_for('auth.logout') }}" class="mobile-nav-item mobile-nav-logout">
+    <i class="bi bi-box-arrow-right"></i>
+    <span>Quitter</span>
+  </a>
+
+</nav>
 
 {% else %}
 {% block auth_content %}{% endblock %}
