@@ -390,12 +390,12 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
   bottom: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  height: 72px;
   background: var(--ink);
   display: flex;
   align-items: stretch;
   justify-content: space-around;
-  border-top: 1px solid rgba(255,255,255,0.12);
+  border-top: 2px solid rgba(255,255,255,0.15);
   z-index: 1050;
   /* safe area iPhone X+ */
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -408,19 +408,20 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
   justify-content: center;
   color: var(--stone2);
   text-decoration: none !important;
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-family: 'Lato', sans-serif;
-  font-weight: 400;
-  gap: 3px;
+  font-weight: 600;
+  gap: 4px;
   flex: 1;
-  padding: 6px 2px;
-  border-top: 2px solid transparent;
+  padding: 8px 4px;
+  min-width: 48px;
+  border-top: 3px solid transparent;
   transition: color 0.15s, border-color 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-nav-item i {
-  font-size: 1.35rem;
+  font-size: 1.6rem;
   line-height: 1;
 }
 
