@@ -1,0 +1,36 @@
+# Environnement virtuel
+venv/
+env/
+.venv/
+
+# Variables d'environnement (NE JAMAIS committer)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Flask / SQLAlchemy
+instance/
+*.db
+*.sqlite3
+
+# Migrations auto-générées (garder le dossier, ignorer les .pyc)
+migrations/versions/__pycache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

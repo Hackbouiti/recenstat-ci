@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Utilisateurs — RecenStat-CI{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar d-none d-lg-block">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+    <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
+  </div>
+  <div class="nav-section">Tableau de bord</div>
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-link">
+    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+  </a>
+  <div class="nav-section">Gestion</div>
+  <a href="{{ url_for('admin.users') }}" class="nav-link active">
+    <i class="bi bi-people"></i> Utilisateurs
+  </a>
+  <a href="{{ url_for('admin.affectations') }}" class="nav-link">
+    <i class="bi bi-map"></i> Affectations
+  </a>
+  <a href="{{ url_for('admin.supervision') }}" class="nav-link">
+    <i class="bi bi-check2-circle"></i> Supervision
+  </a>
+  <div class="nav-section">Territoire</div>
+  <a href="{{ url_for('admin.territoire') }}" class="nav-link">
+    <i class="bi bi-geo-alt"></i> Territoire
+  </a>
+  <div class="nav-section">Données</div>
+  <a href="{{ url_for('admin.donnees') }}" class="nav-link {% if request.endpoint == 'admin.donnees' %}active{% endif %}"><i class="bi bi-table"></i> Tables de données</a>
+  <div class="nav-section">Analyses</div>
+  <a href="{{ url_for('stats.tableau_bord') }}" class="nav-link">
+    <i class="bi bi-bar-chart-line"></i> Statistiques
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h2 class="mb-0">Utilisateurs</h2>
+    <div style="color:var(--dust); font-size:0.85rem;">{{ utilisateurs|length }} compte(s) enregistré(s)</div>
+  </div>
+  <button class="btn btn-em" data-bs-toggle="modal" data-bs-target="#modalUser">
+    <i class="bi bi-person-plus me-2"></i>Nouvel utilisateur
+  </button>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Téléphone</th>
+          <th>Statut</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in utilisateurs %}
+        <tr>
+          <td><strong>{{ u.nom }} {{ u.prenom }}</strong></td>
+          <td><span class="mono" style="font-size:0.85rem;">{{ u.email }}</span></td>
+          <td>
+            {% if u.role == 'ADMINISTRATEUR' %}
+              <span class="badge-statut" style="background:#e8e0f5;color:#5a2d82;">ADMIN</span>
+            {% elif u.role == 'SUPERVISEUR' %}
+              <span class="badge-statut badge-soumis">SUPERVISEUR</span>
+            {% else %}
+              <span class="badge-statut badge-en-cours">ENQUÊTEUR</span>
+            {% endif %}
+          </td>
+          <td>{{ u.telephone or '—' }}</td>
+          <td>
+            <button class="btn btn-sm toggle-btn"
+                    data-user-id="{{ u.id_utilisateur }}"
+                    data-actif="{{ u.actif | lower }}"
+                    style="border:none; background:none; cursor:pointer; font-size:1.2rem;">
+              {% if u.actif %}
+                <i class="bi bi-toggle-on" style="color:var(--em);"></i>
+              {% else %}
+                <i class="bi bi-toggle-off" style="color:var(--dust);"></i>
+              {% endif %}
+            </button>
+          </td>
+          <td></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center py-4" style="color:var(--dust);">Aucun utilisateur enregistré.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal création utilisateur -->
+<div class="modal fade" id="modalUser" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.users') }}" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="modal-header" style="background:var(--ink); color:var(--parch);">
+          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">
+            <i class="bi bi-person-plus me-2"></i>Créer un utilisateur
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="background:var(--parch);">
+          <div class="row g-3">
+            <div class="col-6">
+              {{ form.nom.label(class="form-label") }}
+              {{ form.nom(class="form-control") }}
+            </div>
+            <div class="col-6">
+              {{ form.prenom.label(class="form-label") }}
+              {{ form.prenom(class="form-control") }}
+            </div>
+            <div class="col-12">
+              {{ form.email.label(class="form-label") }}
+              {{ form.email(class="form-control") }}
+            </div>
+            <div class="col-6">
+              {{ form.telephone.label(class="form-label") }}
+              {{ form.telephone(class="form-control") }}
+            </div>
+            <div class="col-6">
+              {{ form.role.label(class="form-label") }}
+              {{ form.role(class="form-select") }}
+            </div>
+            <div class="col-12">
+              {{ form.password.label(class="form-label") }}
+              {{ form.password(class="form-control", placeholder="Minimum 6 caractères") }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="background:var(--parch2);">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          {{ form.submit(class="btn btn-em") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.toggle-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const id = btn.dataset.userId;
+    const res = await fetch(`/admin/users/${id}/toggle`, { method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token() }}'} });
+    const data = await res.json();
+    const icon = btn.querySelector('i');
+    if (data.actif) {
+      icon.className = 'bi bi-toggle-on';
+      icon.style.color = 'var(--em)';
+    } else {
+      icon.className = 'bi bi-toggle-off';
+      icon.style.color = 'var(--dust)';
+    }
+  });
+});
+</script>
+{% endblock %}

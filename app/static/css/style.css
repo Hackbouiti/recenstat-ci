@@ -1,0 +1,385 @@
+:root {
+  --ink:        #1A1A18;
+  --parch:      #FAF8F3;
+  --parch2:     #F2EFE8;
+  --stone:      #E6E2D8;
+  --stone2:     #C8C3B5;
+  --dust:       #8C8677;
+  --orange:     #C95A1A;
+  --orange-lt:  #F5E6D8;
+  --em:         #1A6B4A;
+  --em-lt:      #D4EDE3;
+  --em-md:      #A8D5C0;
+  --em-dk:      #124D36;
+}
+
+/* ── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Lato', sans-serif;
+  background-color: var(--parch);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+}
+
+code, pre, .mono {
+  font-family: 'DM Mono', monospace;
+}
+
+a { color: var(--em); text-decoration: none; }
+a:hover { color: var(--em-dk); text-decoration: underline; }
+
+/* ── Barre tricolore ──────────────────────────────────── */
+.tricolor-bar {
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    var(--orange) 33.3%,
+    var(--parch2) 33.3% 66.6%,
+    var(--em)     66.6%
+  );
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+}
+
+/* ── Navbar ───────────────────────────────────────────── */
+.navbar {
+  background-color: var(--ink) !important;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  margin-top: 4px;
+}
+
+.navbar-brand {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--parch) !important;
+  letter-spacing: 0.02em;
+}
+
+.navbar-brand span.accent { color: var(--orange); }
+
+.navbar .nav-link {
+  color: var(--stone2) !important;
+  font-weight: 400;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  background: rgba(255,255,255,0.08);
+  color: var(--parch) !important;
+}
+
+.navbar .nav-link.logout-link { color: var(--orange-lt) !important; }
+
+/* ── Sidebar admin ────────────────────────────────────── */
+.sidebar {
+  width: 240px;
+  min-height: calc(100vh - 60px);
+  background-color: var(--ink);
+  padding: 1.5rem 0;
+  flex-shrink: 0;
+}
+
+.sidebar .nav-link {
+  color: var(--stone2);
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9rem;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar .nav-link:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--parch);
+  border-left-color: var(--stone2);
+}
+
+.sidebar .nav-link.active {
+  background: rgba(201,90,26,0.15);
+  color: var(--parch);
+  border-left-color: var(--orange);
+}
+
+.sidebar .nav-section {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--dust);
+  padding: 1rem 1.25rem 0.25rem;
+}
+
+/* ── Layout wrapper ───────────────────────────────────── */
+.app-wrapper {
+  display: flex;
+  margin-top: 4px;
+  min-height: calc(100vh - 4px);
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* ── Cards KPI ────────────────────────────────────────── */
+.kpi-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  border-left: 4px solid var(--em);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  height: 100%;
+}
+
+.kpi-card.kpi-orange { border-left-color: var(--orange); }
+.kpi-card.kpi-blue   { border-left-color: #2D5FA8; }
+.kpi-card.kpi-dust   { border-left-color: var(--dust); }
+
+.kpi-card .kpi-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.kpi-card .kpi-label {
+  font-size: 0.82rem;
+  color: var(--dust);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.2rem;
+}
+
+/* ── Badges statut ────────────────────────────────────── */
+.badge-statut {
+  display: inline-block;
+  padding: 0.2em 0.65em;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-family: 'DM Mono', monospace;
+}
+
+.badge-en-cours  { background: var(--stone);    color: var(--dust); }
+.badge-soumis    { background: #E0EAF8;          color: #2D5FA8; }
+.badge-renvoye   { background: var(--orange-lt); color: var(--orange); }
+.badge-valide    { background: var(--em-lt);     color: var(--em-dk); }
+
+/* ── Boutons ──────────────────────────────────────────── */
+.btn-primary,
+.btn-em {
+  background-color: var(--em) !important;
+  border-color: var(--em) !important;
+  color: #fff !important;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary:hover,
+.btn-em:hover {
+  background-color: var(--em-dk) !important;
+  border-color: var(--em-dk) !important;
+}
+
+.btn-secondary,
+.btn-orange {
+  background-color: var(--orange) !important;
+  border-color: var(--orange) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.btn-secondary:hover,
+.btn-orange:hover {
+  background-color: #a8481a !important;
+  border-color: #a8481a !important;
+}
+
+/* ── Formulaires ──────────────────────────────────────── */
+.form-control, .form-select {
+  background-color: var(--parch);
+  border: 1.5px solid var(--stone2);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.93rem;
+  transition: border-color 0.15s;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--em);
+  box-shadow: 0 0 0 3px rgba(26,107,74,0.12);
+  background-color: var(--parch);
+  outline: none;
+}
+
+.form-label {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--ink);
+  margin-bottom: 0.3rem;
+}
+
+/* ── Tableaux ─────────────────────────────────────────── */
+.table {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+.table thead th {
+  background-color: var(--ink);
+  color: var(--parch2);
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: none;
+  padding: 0.75rem 1rem;
+}
+
+.table tbody tr:hover { background-color: var(--parch2); }
+.table tbody td { padding: 0.7rem 1rem; vertical-align: middle; border-color: var(--stone); }
+
+/* ── Cards génériques ────────────────────────────────── */
+.card {
+  border: 1px solid var(--stone);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.card-header {
+  background: var(--parch2);
+  border-bottom: 1px solid var(--stone);
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  padding: 0.85rem 1.25rem;
+}
+
+/* ── Page login ───────────────────────────────────────── */
+.login-page {
+  min-height: 100vh;
+  background-color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+
+.login-card .login-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+
+.login-card .login-sub {
+  font-size: 0.85rem;
+  color: var(--dust);
+  margin-bottom: 1.75rem;
+}
+
+/* ── Bouton flottant ─────────────────────────────────── */
+.fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--em);
+  color: #fff;
+  font-size: 1.5rem;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(26,107,74,0.35);
+  cursor: pointer;
+  text-decoration: none;
+  z-index: 1000;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.fab:hover {
+  background: var(--em-dk);
+  color: #fff;
+  transform: scale(1.07);
+}
+
+/* ── Mobile-first enquêteur ──────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main-content { padding: 1rem; }
+
+  .form-control, .form-select, .btn {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .kpi-card .kpi-value { font-size: 1.7rem; }
+}
+
+/* ── Barre de progression ────────────────────────────── */
+.progress { background: var(--stone); border-radius: 4px; }
+.progress-bar { background: var(--em); }
+
+/* ── Alertes flash ───────────────────────────────────── */
+.alert-success  { background: var(--em-lt);      border-color: var(--em-md);   color: var(--em-dk); }
+.alert-warning  { background: var(--orange-lt);  border-color: var(--orange);  color: #7a3310; }
+.alert-danger   { background: #fde8e8;           border-color: #e57373;        color: #7b1a1a; }
+.alert-info     { background: #E0EAF8;           border-color: #90aad4;        color: #1e3a6a; }
+
+/* ── Code ménage / DM Mono ───────────────────────────── */
+.code-menage {
+  font-family: 'DM Mono', monospace;
+  background: var(--parch2);
+  border: 1px solid var(--stone);
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+/* ── Arborescence territoire ─────────────────────────── */
+.tree-item {
+  padding: 0.4rem 0.75rem;
+  border-left: 2px solid var(--stone);
+  margin-left: 1rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}

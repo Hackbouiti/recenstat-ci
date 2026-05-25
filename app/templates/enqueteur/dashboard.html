@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Mon espace — RecenStat-CI{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h2 class="mb-0">Bonjour, {{ current_user.prenom }} 👋</h2>
+  <div style="color:var(--dust); font-size:0.85rem;">
+    <i class="bi bi-calendar3 me-1"></i>{{ now.strftime('%A %d %B %Y') if now else '' }} —
+    <strong style="color:var(--em);">{{ passages_jour }}</strong> passage(s) enregistré(s) aujourd'hui
+  </div>
+</div>
+
+{% if progression %}
+<h5 class="mb-3" style="font-family:'Playfair Display',serif;">
+  <i class="bi bi-map me-2" style="color:var(--orange);"></i>Mes zones affectées
+</h5>
+<div class="row g-3">
+  {% for p in progression %}
+  <div class="col-12 col-md-6 col-lg-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="code-menage">{{ p.zd.code_zd }}</span>
+            {% if p.zd.quartier %}
+            <div style="font-size:0.82rem; color:var(--dust); margin-top:0.2rem;">
+              {{ p.zd.quartier.nom_quartier }}
+            </div>
+            {% endif %}
+          </div>
+          <span class="badge-statut {% if p.pct == 100 %}badge-valide{% elif p.pct > 0 %}badge-soumis{% else %}badge-en-cours{% endif %}">
+            {{ p.pct }}%
+          </span>
+        </div>
+
+        <div class="progress mb-2" style="height:6px;">
+          <div class="progress-bar" style="width:{{ p.pct }}%;"></div>
+        </div>
+        <div style="font-size:0.8rem; color:var(--dust);">
+          {{ p.valides }} validé(s) / {{ p.total }} ménage(s) saisi(s)
+        </div>
+      </div>
+      <div class="card-footer" style="background:var(--parch2); border-top:1px solid var(--stone);">
+        <a href="{{ url_for('enqueteur.menages_zd', id_zd=p.zd.id_zd) }}" class="btn btn-em btn-sm w-100">
+          <i class="bi bi-arrow-right me-1"></i>Accéder aux ménages
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-map" style="font-size:3rem; color:var(--stone2);"></i>
+    <h5 class="mt-3" style="font-family:'Playfair Display',serif;">Aucune zone affectée</h5>
+    <p style="color:var(--dust);">Contactez votre administrateur pour recevoir une affectation.</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Bouton flottant nouveau ménage -->
+{% if progression %}
+<a href="{{ url_for('enqueteur.nouveau_menage') }}" class="fab" title="Nouveau ménage">
+  <i class="bi bi-plus-lg"></i>
+</a>
+{% endif %}
+{% endblock %}

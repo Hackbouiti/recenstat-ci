@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}{{ menage.code_menage }} — RecenStat-CI{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{{ url_for('enqueteur.menages_zd', id_zd=zd.id_zd) }}" class="text-decoration-none" style="color:var(--dust); font-size:0.85rem;">
+    <i class="bi bi-arrow-left me-1"></i>Zone {{ zd.code_zd }}
+  </a>
+  <div class="d-flex align-items-center justify-content-between mt-1">
+    <div>
+      <h2 class="mb-0">
+        <span class="code-menage" style="font-size:1.3rem;">{{ menage.code_menage }}</span>
+      </h2>
+      <div style="color:var(--dust); font-size:0.85rem;">
+        Îlot {{ ilot.numero_ilot }} · {{ zd.code_zd }}
+        {% if zd.quartier %} · {{ zd.quartier.nom_quartier }}{% endif %}
+      </div>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      {% set s = menage.statut_menage.code_statut %}
+      {% if s == 'EN_COURS' %}
+        <span class="badge-statut badge-en-cours">En cours</span>
+      {% elif s == 'SOUMIS' %}
+        <span class="badge-statut badge-soumis">Soumis</span>
+      {% elif s == 'RENVOYE' %}
+        <span class="badge-statut badge-renvoye">Renvoyé</span>
+      {% elif s == 'VALIDE' %}
+        <span class="badge-statut badge-valide">Validé</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- Infos logement -->
+  <div class="col-12 col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-house me-2" style="color:var(--em);"></i>Logement
+      </div>
+      <div class="card-body">
+        <table class="table table-sm mb-0" style="font-size:0.88rem;">
+          <tr>
+            <td style="color:var(--dust); width:45%;">Type</td>
+            <td><strong>{{ menage.logement.type_logement.libelle_type }}</strong></td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust);">Murs</td>
+            <td>{{ menage.logement.materiau_mur.libelle_materiau }}</td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust);">Toit</td>
+            <td>{{ menage.logement.materiau_toit.libelle_materiau }}</td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust);">Eau</td>
+            <td>{{ menage.logement.source_eau.libelle_source }}</td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust);">Toilettes</td>
+            <td>{{ menage.logement.type_toilette.libelle_type }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Membres du ménage -->
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-people me-2" style="color:var(--orange);"></i>
+          Membres ({{ menage.individus | length }})
+        </span>
+        {% if s not in ('VALIDE',) %}
+        <a href="{{ url_for('enqueteur.nouveau_individu', id_menage=menage.id_menage) }}" class="btn btn-sm btn-em">
+          <i class="bi bi-person-plus me-1"></i>Ajouter
+        </a>
+        {% endif %}
+      </div>
+      {% if menage.individus %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:0.88rem;">
+          <thead>
+            <tr>
+              <th>Nom & Prénom</th>
+              <th>Âge</th>
+              <th>Sexe</th>
+              <th>Lien</th>
+              <th>Activité</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ind in menage.individus %}
+            <tr>
+              <td>
+                <strong>{{ ind.nom }} {{ ind.prenom }}</strong>
+                {% if ind.est_chef_menage %}
+                  <span class="badge-statut badge-valide ms-1" style="font-size:0.7rem;">Chef</span>
+                {% endif %}
+              </td>
+              <td>{{ ind.age }} ans</td>
+              <td>{{ 'M' if ind.sexe == 'M' else 'F' }}</td>
+              <td style="font-size:0.8rem;">{{ ind.lien_chef_menage }}</td>
+              <td style="font-size:0.8rem;">{{ ind.statut_activite }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body text-center py-4" style="color:var(--dust);">
+        <i class="bi bi-person-x" style="font-size:2rem;"></i>
+        <div class="mt-2">Aucun membre enregistré.</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body d-flex flex-wrap gap-2">
+        <a href="{{ url_for('enqueteur.nouveau_passage', id_menage=menage.id_menage) }}"
+           class="btn btn-outline-secondary">
+          <i class="bi bi-calendar-check me-2"></i>Enregistrer un passage
+        </a>
+
+        {% if peut_soumettre %}
+        <form method="POST" action="{{ url_for('enqueteur.soumettre_menage', id_menage=menage.id_menage) }}"
+              onsubmit="return confirm('Soumettre le ménage {{ menage.code_menage }} pour validation ?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-em">
+            <i class="bi bi-send me-2"></i>Soumettre pour validation
+          </button>
+        </form>
+        {% elif menage.individus | length == 0 %}
+        <button class="btn btn-em" disabled title="Ajoutez au moins un membre avant de soumettre.">
+          <i class="bi bi-send me-2"></i>Soumettre (aucun membre)
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Historique des passages -->
+  {% if passages %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-clock-history me-2" style="color:var(--dust);"></i>Historique des passages
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0" style="font-size:0.85rem;">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Heure</th>
+              <th>Statut</th>
+              <th>Observations</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in passages %}
+            <tr>
+              <td>{{ p.numero_passage }}</td>
+              <td>{{ p.date_passage.strftime('%d/%m/%Y') }}</td>
+              <td>{{ p.heure_passage.strftime('%H:%M') if p.heure_passage else '—' }}</td>
+              <td>{{ p.statut_passage.libelle_statut }}</td>
+              <td style="color:var(--dust);">{{ p.observations or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

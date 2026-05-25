@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Affectations — RecenStat-CI{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar d-none d-lg-block">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+    <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
+  </div>
+  <div class="nav-section">Tableau de bord</div>
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Vue d'ensemble</a>
+  <div class="nav-section">Gestion</div>
+  <a href="{{ url_for('admin.users') }}" class="nav-link"><i class="bi bi-people"></i> Utilisateurs</a>
+  <a href="{{ url_for('admin.affectations') }}" class="nav-link active"><i class="bi bi-map"></i> Affectations</a>
+  <a href="{{ url_for('admin.supervision') }}" class="nav-link"><i class="bi bi-check2-circle"></i> Supervision</a>
+  <div class="nav-section">Territoire</div>
+  <a href="{{ url_for('admin.territoire') }}" class="nav-link"><i class="bi bi-geo-alt"></i> Territoire</a>
+  <div class="nav-section">Données</div>
+  <a href="{{ url_for('admin.donnees') }}" class="nav-link {% if request.endpoint == 'admin.donnees' %}active{% endif %}"><i class="bi bi-table"></i> Tables de données</a>
+  <div class="nav-section">Analyses</div>
+  <a href="{{ url_for('stats.tableau_bord') }}" class="nav-link"><i class="bi bi-bar-chart-line"></i> Statistiques</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h2 class="mb-0">Affectations</h2>
+    <div style="color:var(--dust); font-size:0.85rem;">Enquêteurs et zones de dénombrement</div>
+  </div>
+  <button class="btn btn-em" data-bs-toggle="modal" data-bs-target="#modalAffectation">
+    <i class="bi bi-plus-circle me-2"></i>Nouvelle affectation
+  </button>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Enquêteur</th>
+          <th>Zone de dénombrement</th>
+          <th>Début</th>
+          <th>Fin</th>
+          <th>Progression</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in result %}
+        <tr>
+          <td><strong>{{ row.enqueteur.nom }} {{ row.enqueteur.prenom }}</strong><br>
+              <span style="font-size:0.8rem;color:var(--dust);">{{ row.enqueteur.email }}</span></td>
+          <td><span class="code-menage">{{ row.affectation.zone_denombrement.code_zd }}</span></td>
+          <td>{{ row.affectation.date_debut.strftime('%d/%m/%Y') }}</td>
+          <td>{{ row.affectation.date_fin.strftime('%d/%m/%Y') if row.affectation.date_fin else '—' }}</td>
+          <td style="min-width:160px;">
+            <div class="d-flex align-items-center gap-2">
+              <div class="progress flex-grow-1" style="height:8px;">
+                {% set pct = (row.valides / row.total * 100) | round | int if row.total > 0 else 0 %}
+                <div class="progress-bar" style="width:{{ pct }}%;"></div>
+              </div>
+              <span style="font-size:0.8rem;color:var(--dust);white-space:nowrap;">{{ row.valides }}/{{ row.total }}</span>
+            </div>
+          </td>
+          <td>
+            {% if row.affectation.actif %}
+              <span class="badge-statut badge-valide">Actif</span>
+            {% else %}
+              <span class="badge-statut badge-en-cours">Inactif</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center py-4" style="color:var(--dust);">Aucune affectation enregistrée.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal affectation -->
+<div class="modal fade" id="modalAffectation" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.affectations') }}" novalidate>
+        {{ form.hidden_tag() }}
+        <div class="modal-header" style="background:var(--ink); color:var(--parch);">
+          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">
+            <i class="bi bi-map me-2"></i>Nouvelle affectation
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="background:var(--parch);">
+          <div class="mb-3">
+            {{ form.id_utilisateur.label(class="form-label") }}
+            {{ form.id_utilisateur(class="form-select") }}
+          </div>
+          <div class="mb-3">
+            {{ form.id_zd.label(class="form-label") }}
+            {{ form.id_zd(class="form-select") }}
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              {{ form.date_debut.label(class="form-label") }}
+              {{ form.date_debut(class="form-control") }}
+            </div>
+            <div class="col-6">
+              {{ form.date_fin.label(class="form-label") }}
+              {{ form.date_fin(class="form-control") }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="background:var(--parch2);">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          {{ form.submit(class="btn btn-em") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

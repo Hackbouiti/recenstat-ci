@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Nouveau passage — RecenStat-CI{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{{ url_for('enqueteur.fiche_menage', id_menage=menage.id_menage) }}"
+     class="text-decoration-none" style="color:var(--dust); font-size:0.85rem;">
+    <i class="bi bi-arrow-left me-1"></i>Ménage <span class="code-menage">{{ menage.code_menage }}</span>
+  </a>
+  <h2 class="mb-0 mt-1">Enregistrer un passage</h2>
+  <div style="color:var(--dust); font-size:0.85rem;">
+    {{ menage.passages | length }} passage(s) précédent(s)
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-calendar-check me-2" style="color:var(--em);"></i>Détails du passage
+      </div>
+      <div class="card-body">
+        <form method="POST" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.id_statut_passage.label(class="form-label") }}
+            {{ form.id_statut_passage(class="form-select") }}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              {{ form.date_passage.label(class="form-label") }}
+              {{ form.date_passage(class="form-control") }}
+            </div>
+            <div class="col-6">
+              {{ form.heure_passage.label(class="form-label") }}
+              {{ form.heure_passage(class="form-control", id="heurePassage") }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            {{ form.observations.label(class="form-label") }}
+            {{ form.observations(class="form-control", rows=3, placeholder="Remarques éventuelles…") }}
+          </div>
+
+          <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+            <a href="{{ url_for('enqueteur.fiche_menage', id_menage=menage.id_menage) }}"
+               class="btn btn-outline-secondary">Annuler</a>
+            {{ form.submit(class="btn btn-em px-4") }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Pré-remplir l'heure courante
+const heureInput = document.getElementById('heurePassage');
+if (heureInput && !heureInput.value) {
+  const now = new Date();
+  heureInput.value = now.toTimeString().slice(0, 5);
+}
+</script>
+{% endblock %}

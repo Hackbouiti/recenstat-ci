@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Nouveau ménage — RecenStat-CI{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{{ url_for('enqueteur.dashboard') }}" class="text-decoration-none" style="color:var(--dust); font-size:0.85rem;">
+    <i class="bi bi-arrow-left me-1"></i>Tableau de bord
+  </a>
+  <h2 class="mb-0 mt-1">Nouveau ménage</h2>
+  <div style="color:var(--dust); font-size:0.85rem;">Le code ménage sera généré automatiquement</div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <form method="POST" action="{{ url_for('enqueteur.nouveau_menage') }}" novalidate id="formMenage">
+      {{ form.hidden_tag() }}
+
+      <!-- Étape 1 : Localisation -->
+      <div class="card mb-3">
+        <div class="card-header">
+          <i class="bi bi-geo-alt me-2" style="color:var(--orange);"></i>
+          Étape 1 — Localisation
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              {{ form.id_zd.label(class="form-label") }}
+              {{ form.id_zd(class="form-select", id="selectZD") }}
+              {% for err in form.id_zd.errors %}
+                <div class="text-danger" style="font-size:0.82rem;">{{ err }}</div>
+              {% endfor %}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.id_ilot.label(class="form-label") }}
+              {{ form.id_ilot(class="form-select", id="selectIlot") }}
+              {% for err in form.id_ilot.errors %}
+                <div class="text-danger" style="font-size:0.82rem;">{{ err }}</div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Étape 2 : Caractéristiques du logement -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <i class="bi bi-house me-2" style="color:var(--em);"></i>
+          Étape 2 — Caractéristiques du logement
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              {{ form.id_type_logement.label(class="form-label") }}
+              {{ form.id_type_logement(class="form-select") }}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.id_materiau_mur.label(class="form-label") }}
+              {{ form.id_materiau_mur(class="form-select") }}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.id_materiau_toit.label(class="form-label") }}
+              {{ form.id_materiau_toit(class="form-select") }}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.id_source_eau.label(class="form-label") }}
+              {{ form.id_source_eau(class="form-select") }}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.id_type_toilette.label(class="form-label") }}
+              {{ form.id_type_toilette(class="form-select") }}
+            </div>
+          </div>
+
+          <!-- Code ménage généré (lecture seule) -->
+          <div class="mt-3 p-3 rounded" style="background:var(--parch2); border:1px solid var(--stone);">
+            <div style="font-size:0.78rem; color:var(--dust); text-transform:uppercase; letter-spacing:0.05em;">
+              <i class="bi bi-info-circle me-1"></i>Code ménage (généré automatiquement)
+            </div>
+            <div class="code-menage mt-1" style="font-size:1rem;">
+              Sera attribué à la création
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+        <a href="{{ url_for('enqueteur.dashboard') }}" class="btn btn-outline-secondary">Annuler</a>
+        {{ form.submit(class="btn btn-em px-4") }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const selectZD = document.getElementById('selectZD');
+const selectIlot = document.getElementById('selectIlot');
+
+selectZD.addEventListener('change', async () => {
+  const zdId = selectZD.value;
+  selectIlot.innerHTML = '<option value="">Chargement…</option>';
+  if (!zdId) return;
+  const res = await fetch(`/enqueteur/api/ilots/${zdId}`);
+  const data = await res.json();
+  selectIlot.innerHTML = '<option value="">--- Sélectionner un îlot ---</option>';
+  data.ilots.forEach(i => {
+    const opt = document.createElement('option');
+    opt.value = i.id;
+    opt.textContent = i.code;
+    selectIlot.appendChild(opt);
+  });
+});
+</script>
+{% endblock %}

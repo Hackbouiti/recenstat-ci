@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Supervision — RecenStat-CI{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar d-none d-lg-block">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+    <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
+  </div>
+  <div class="nav-section">Tableau de bord</div>
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Vue d'ensemble</a>
+  <div class="nav-section">Gestion</div>
+  <a href="{{ url_for('admin.users') }}" class="nav-link"><i class="bi bi-people"></i> Utilisateurs</a>
+  <a href="{{ url_for('admin.affectations') }}" class="nav-link"><i class="bi bi-map"></i> Affectations</a>
+  <a href="{{ url_for('admin.supervision') }}" class="nav-link active"><i class="bi bi-check2-circle"></i> Supervision</a>
+  <div class="nav-section">Territoire</div>
+  <a href="{{ url_for('admin.territoire') }}" class="nav-link"><i class="bi bi-geo-alt"></i> Territoire</a>
+  <div class="nav-section">Données</div>
+  <a href="{{ url_for('admin.donnees') }}" class="nav-link {% if request.endpoint == 'admin.donnees' %}active{% endif %}"><i class="bi bi-table"></i> Tables de données</a>
+  <div class="nav-section">Analyses</div>
+  <a href="{{ url_for('stats.tableau_bord') }}" class="nav-link"><i class="bi bi-bar-chart-line"></i> Statistiques</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h2 class="mb-0">Supervision des fiches</h2>
+    <div style="color:var(--dust); font-size:0.85rem;">{{ fiches|length }} fiche(s) en attente de validation</div>
+  </div>
+</div>
+
+{% if fiches %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Code ménage</th>
+          <th>Zone / Îlot</th>
+          <th>Membres</th>
+          <th>Dernier passage</th>
+          <th>Enquêteur</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in fiches %}
+        <tr>
+          <td><span class="code-menage">{{ f.menage.code_menage }}</span></td>
+          <td>
+            <span style="font-size:0.85rem;">{{ f.zd.code_zd }}</span><br>
+            <span style="font-size:0.78rem; color:var(--dust);">Îlot {{ f.ilot.numero_ilot }}</span>
+          </td>
+          <td>
+            <span class="badge-statut badge-soumis">{{ f.nb_membres }} membre{{ 's' if f.nb_membres > 1 }}</span>
+          </td>
+          <td>
+            {% if f.passage %}
+              {{ f.passage.date_passage.strftime('%d/%m/%Y') }}<br>
+              <span style="font-size:0.78rem;color:var(--dust);">{{ f.passage.utilisateur.prenom }} {{ f.passage.utilisateur.nom }}</span>
+            {% else %}
+              <span style="color:var(--dust);">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if f.passage %}
+              {{ f.passage.utilisateur.prenom }} {{ f.passage.utilisateur.nom }}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-end">
+            <form method="POST" action="{{ url_for('admin.valider_menage', menage_id=f.menage.id_menage) }}" class="d-inline"
+                  onsubmit="return confirm('Valider le ménage {{ f.menage.code_menage }} ?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-em">
+                <i class="bi bi-check-lg me-1"></i>Valider
+              </button>
+            </form>
+            <button class="btn btn-sm btn-orange ms-1"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalRenvoyer{{ f.menage.id_menage }}">
+              <i class="bi bi-arrow-return-left me-1"></i>Renvoyer
+            </button>
+          </td>
+        </tr>
+
+        <!-- Modal renvoyer -->
+        <div class="modal fade" id="modalRenvoyer{{ f.menage.id_menage }}" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="POST" action="{{ url_for('admin.renvoyer_menage', menage_id=f.menage.id_menage) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header" style="background:var(--ink);color:var(--parch);">
+                  <h5 class="modal-title" style="font-family:'Playfair Display',serif;">
+                    <i class="bi bi-arrow-return-left me-2"></i>Renvoyer en correction
+                  </h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="background:var(--parch);">
+                  <p>Ménage : <strong class="code-menage">{{ f.menage.code_menage }}</strong></p>
+                  <div class="mb-3">
+                    <label class="form-label">Observations (motif de renvoi)</label>
+                    <textarea name="observations" class="form-control" rows="3" placeholder="Indiquer les corrections attendues..."></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer" style="background:var(--parch2);">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                  <button type="submit" class="btn btn-orange">
+                    <i class="bi bi-arrow-return-left me-1"></i>Renvoyer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-check2-circle" style="font-size:3rem; color:var(--em-md);"></i>
+    <h5 class="mt-3" style="font-family:'Playfair Display',serif;">Aucune fiche en attente</h5>
+    <p style="color:var(--dust);">Toutes les fiches soumises ont été traitées.</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

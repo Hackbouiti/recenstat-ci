@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Ménages — {{ zd.code_zd }} — RecenStat-CI{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <a href="{{ url_for('enqueteur.dashboard') }}" class="text-decoration-none" style="color:var(--dust); font-size:0.85rem;">
+      <i class="bi bi-arrow-left me-1"></i>Mes zones
+    </a>
+    <h2 class="mb-0 mt-1">Zone <span class="code-menage">{{ zd.code_zd }}</span></h2>
+    {% if zd.quartier %}
+    <div style="color:var(--dust); font-size:0.85rem;">{{ zd.quartier.nom_quartier }} — {{ zd.localite.nom_localite }}</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Barre de recherche -->
+<form method="GET" class="mb-3 d-flex gap-2">
+  <input type="text" name="q" class="form-control" placeholder="Rechercher par code ménage…" value="{{ query }}">
+  <button type="submit" class="btn btn-em px-3"><i class="bi bi-search"></i></button>
+  {% if query %}
+  <a href="{{ url_for('enqueteur.menages_zd', id_zd=zd.id_zd) }}" class="btn btn-outline-secondary px-3">
+    <i class="bi bi-x"></i>
+  </a>
+  {% endif %}
+</form>
+
+{% if menages %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Code ménage</th>
+          <th>Îlot</th>
+          <th>Membres</th>
+          <th>Statut</th>
+          <th>Date création</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in menages %}
+        <tr>
+          <td><span class="code-menage">{{ m.code_menage }}</span></td>
+          <td>{{ m.logement.ilot.code_ilot }}</td>
+          <td>{{ m.individus | length }}</td>
+          <td>
+            {% set s = m.statut_menage.code_statut %}
+            {% if s == 'EN_COURS' %}
+              <span class="badge-statut badge-en-cours">En cours</span>
+            {% elif s == 'SOUMIS' %}
+              <span class="badge-statut badge-soumis">Soumis</span>
+            {% elif s == 'RENVOYE' %}
+              <span class="badge-statut badge-renvoye">Renvoyé</span>
+            {% elif s == 'VALIDE' %}
+              <span class="badge-statut badge-valide">Validé</span>
+            {% endif %}
+          </td>
+          <td style="font-size:0.85rem;">{{ m.date_creation.strftime('%d/%m/%Y') }}</td>
+          <td>
+            <a href="{{ url_for('enqueteur.fiche_menage', id_menage=m.id_menage) }}"
+               class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-eye me-1"></i>Ouvrir
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i class="bi bi-house-slash" style="font-size:3rem; color:var(--stone2);"></i>
+    <h5 class="mt-3" style="font-family:'Playfair Display',serif;">
+      {% if query %}Aucun résultat pour « {{ query }} »{% else %}Aucun ménage enregistré{% endif %}
+    </h5>
+    {% if not query %}
+    <p style="color:var(--dust);">Commencez par créer un nouveau ménage.</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<a href="{{ url_for('enqueteur.nouveau_menage') }}" class="fab" title="Nouveau ménage">
+  <i class="bi bi-plus-lg"></i>
+</a>
+{% endblock %}

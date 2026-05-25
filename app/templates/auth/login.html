@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion — RecenStat-CI{% endblock %}
+
+{% block auth_content %}
+<div class="tricolor-bar"></div>
+<div class="login-page">
+  <div class="login-card">
+    <div class="text-center mb-4">
+      <div style="font-size:2.5rem; color: var(--em);">
+        <i class="bi bi-clipboard-data-fill"></i>
+      </div>
+      <div class="login-title">RecenStat<span style="color:var(--orange);">-CI</span></div>
+      <div class="login-sub">Système de recensement des ménages</div>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+      {{ form.hidden_tag() }}
+
+      <div class="mb-3">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="votre@email.ci") }}
+        {% for err in form.email.errors %}
+          <div class="invalid-feedback">{{ err }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-4">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="••••••••") }}
+        {% for err in form.password.errors %}
+          <div class="invalid-feedback">{{ err }}</div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" style="min-height:46px; font-size:1rem;">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+      </button>
+    </form>
+
+    <div class="text-center mt-4" style="font-size:0.78rem; color: var(--dust);">
+      <i class="bi bi-shield-lock me-1"></i>Accès réservé au personnel autorisé
+    </div>
+  </div>
+</div>
+{% endblock %}

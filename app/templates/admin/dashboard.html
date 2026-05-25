@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord — RecenStat-CI{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar d-none d-lg-block">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+    <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
+  </div>
+  <div class="nav-section">Tableau de bord</div>
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+    <i class="bi bi-speedometer2"></i> Vue d'ensemble
+  </a>
+  <div class="nav-section">Gestion</div>
+  <a href="{{ url_for('admin.users') }}" class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
+    <i class="bi bi-people"></i> Utilisateurs
+  </a>
+  <a href="{{ url_for('admin.affectations') }}" class="nav-link {% if request.endpoint == 'admin.affectations' %}active{% endif %}">
+    <i class="bi bi-map"></i> Affectations
+  </a>
+  <a href="{{ url_for('admin.supervision') }}" class="nav-link {% if request.endpoint == 'admin.supervision' %}active{% endif %}">
+    <i class="bi bi-check2-circle"></i> Supervision
+  </a>
+  <div class="nav-section">Territoire</div>
+  <a href="{{ url_for('admin.territoire') }}" class="nav-link {% if request.endpoint == 'admin.territoire' %}active{% endif %}">
+    <i class="bi bi-geo-alt"></i> Territoire
+  </a>
+  <div class="nav-section">Données</div>
+  <a href="{{ url_for('admin.donnees') }}" class="nav-link {% if request.endpoint == 'admin.donnees' %}active{% endif %}"><i class="bi bi-table"></i> Tables de données</a>
+  <div class="nav-section">Analyses</div>
+  <a href="{{ url_for('stats.tableau_bord') }}" class="nav-link">
+    <i class="bi bi-bar-chart-line"></i> Statistiques
+  </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <h2 class="mb-0">Vue d'ensemble</h2>
+    <div style="color:var(--dust); font-size:0.85rem;">Activité globale du recensement</div>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card">
+      <div class="kpi-value">{{ total_menages }}</div>
+      <div class="kpi-label"><i class="bi bi-house me-1"></i>Ménages saisis</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card" style="border-left-color:var(--em);">
+      <div class="kpi-value" style="color:var(--em);">{{ fiches_validees }}</div>
+      <div class="kpi-label"><i class="bi bi-check-circle me-1"></i>Fiches validées</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-value" style="color:#2D5FA8;">{{ en_attente }}</div>
+      <div class="kpi-label"><i class="bi bi-hourglass-split me-1"></i>En attente</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-value" style="color:var(--orange);">{{ enqueteurs_actifs }}</div>
+      <div class="kpi-label"><i class="bi bi-person-badge me-1"></i>Enquêteurs actifs</div>
+    </div>
+  </div>
+</div>
+
+<!-- Graphique taux couverture ZD -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-bar-chart me-2" style="color:var(--em);"></i>Taux de couverture par Zone de dénombrement
+      </div>
+      <div class="card-body">
+        <canvas id="chartZD" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-clock-history me-2" style="color:var(--orange);"></i>Liens rapides
+      </div>
+      <div class="card-body d-flex flex-column gap-2">
+        <a href="{{ url_for('admin.supervision') }}" class="btn btn-em w-100">
+          <i class="bi bi-check2-square me-2"></i>Superviser les fiches
+        </a>
+        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-person-plus me-2"></i>Gérer les utilisateurs
+        </a>
+        <a href="{{ url_for('stats.tableau_bord') }}" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-graph-up me-2"></i>Tableau statistique
+        </a>
+        <a href="{{ url_for('admin.territoire') }}" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-map me-2"></i>Gestion du territoire
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('chartZD');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: {{ zd_labels | tojson }},
+    datasets: [{
+      label: 'Taux de validation (%)',
+      data: {{ zd_data | tojson }},
+      backgroundColor: 'rgba(26,107,74,0.75)',
+      borderColor: '#1A6B4A',
+      borderWidth: 1,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+</script>
+{% endblock %}

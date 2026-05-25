@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}Territoire — RecenStat-CI{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar d-none d-lg-block">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+    <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
+  </div>
+  <div class="nav-section">Tableau de bord</div>
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Vue d'ensemble</a>
+  <div class="nav-section">Gestion</div>
+  <a href="{{ url_for('admin.users') }}" class="nav-link"><i class="bi bi-people"></i> Utilisateurs</a>
+  <a href="{{ url_for('admin.affectations') }}" class="nav-link"><i class="bi bi-map"></i> Affectations</a>
+  <a href="{{ url_for('admin.supervision') }}" class="nav-link"><i class="bi bi-check2-circle"></i> Supervision</a>
+  <div class="nav-section">Territoire</div>
+  <a href="{{ url_for('admin.territoire') }}" class="nav-link active"><i class="bi bi-geo-alt"></i> Territoire</a>
+  <div class="nav-section">Données</div>
+  <a href="{{ url_for('admin.donnees') }}" class="nav-link {% if request.endpoint == 'admin.donnees' %}active{% endif %}"><i class="bi bi-table"></i> Tables de données</a>
+  <div class="nav-section">Analyses</div>
+  <a href="{{ url_for('stats.tableau_bord') }}" class="nav-link"><i class="bi bi-bar-chart-line"></i> Statistiques</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h2 class="mb-0">Gestion du territoire</h2>
+  <div style="color:var(--dust); font-size:0.85rem;">Localités, quartiers, zones de dénombrement et îlots</div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Localités -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-building me-2" style="color:var(--em);"></i>Localités administratives</span>
+        <button class="btn btn-sm btn-em" data-bs-toggle="modal" data-bs-target="#modalLocalite">
+          <i class="bi bi-plus"></i>
+        </button>
+      </div>
+      <div class="card-body p-0" style="max-height:300px; overflow-y:auto;">
+        <ul class="list-group list-group-flush">
+          {% for loc in localites %}
+          <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+            <div>
+              <span class="code-menage">{{ loc.code_localite }}</span>
+              <span class="ms-2">{{ loc.nom_localite }}</span>
+            </div>
+            <span style="font-size:0.78rem;color:var(--dust);">{{ loc.type_localite.libelle_type }}</span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-center py-3" style="color:var(--dust);">Aucune localité.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quartiers -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-house-door me-2" style="color:var(--orange);"></i>Quartiers</span>
+        <button class="btn btn-sm btn-em" data-bs-toggle="modal" data-bs-target="#modalQuartier">
+          <i class="bi bi-plus"></i>
+        </button>
+      </div>
+      <div class="card-body p-0" style="max-height:300px; overflow-y:auto;">
+        <ul class="list-group list-group-flush">
+          {% for q in quartiers %}
+          <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+            <div>
+              <span class="code-menage">{{ q.code_quartier }}</span>
+              <span class="ms-2">{{ q.nom_quartier }}</span>
+            </div>
+            <span style="font-size:0.78rem;color:var(--dust);">{{ q.localite.nom_localite }}</span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-center py-3" style="color:var(--dust);">Aucun quartier.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zones de dénombrement -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-grid me-2" style="color:#2D5FA8;"></i>Zones de dénombrement</span>
+        <button class="btn btn-sm btn-em" data-bs-toggle="modal" data-bs-target="#modalZD">
+          <i class="bi bi-plus"></i>
+        </button>
+      </div>
+      <div class="card-body p-0" style="max-height:300px; overflow-y:auto;">
+        <ul class="list-group list-group-flush">
+          {% for zd in zones %}
+          <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+            <span class="code-menage">{{ zd.code_zd }}</span>
+            <span style="font-size:0.78rem;color:var(--dust);">{{ zd.localite.nom_localite }}</span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-center py-3" style="color:var(--dust);">Aucune ZD.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Îlots -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-hexagon me-2" style="color:var(--dust);"></i>Îlots</span>
+        <button class="btn btn-sm btn-em" data-bs-toggle="modal" data-bs-target="#modalIlot">
+          <i class="bi bi-plus"></i>
+        </button>
+      </div>
+      <div class="card-body p-0" style="max-height:300px; overflow-y:auto;">
+        <ul class="list-group list-group-flush">
+          {% for ilot in ilots %}
+          <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+            <div>
+              <span class="code-menage">{{ ilot.code_ilot }}</span>
+              <span class="ms-2" style="font-size:0.85rem;">Îlot n°{{ ilot.numero_ilot }}</span>
+            </div>
+            <span style="font-size:0.78rem;color:var(--dust);">{{ ilot.zone_denombrement.code_zd }}</span>
+          </li>
+          {% else %}
+          <li class="list-group-item text-center py-3" style="color:var(--dust);">Aucun îlot.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal Localité -->
+<div class="modal fade" id="modalLocalite" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.add_localite') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header" style="background:var(--ink);color:var(--parch);">
+          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">Ajouter une localité</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="background:var(--parch);">
+          <div class="mb-3">
+            <label class="form-label">Nom de la localité *</label>
+            <input type="text" name="nom_localite" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Code *</label>
+            <input type="text" name="code_localite" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Type *</label>
+            <select name="id_type_localite" class="form-select" required>
+              {% for t in types %}
+              <option value="{{ t.id_type_localite }}">{{ t.libelle_type }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Localité parente</label>
+            <select name="id_parent" class="form-select">
+              <option value="">— Aucune —</option>
+              {% for loc in localites %}
+              <option value="{{ loc.id_localite }}">{{ loc.nom_localite }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="background:var(--parch2);">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-em">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Quartier -->
+<div class="modal fade" id="modalQuartier" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.add_quartier') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header" style="background:var(--ink);color:var(--parch);">
+          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">Ajouter un quartier</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="background:var(--parch);">
+          <div class="mb-3">
+            <label class="form-label">Nom du quartier *</label>
+            <input type="text" name="nom_quartier" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Code *</label>
+            <input type="text" name="code_quartier" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Localité *</label>
+            <select name="id_localite" class="form-select" required>
+              {% for loc in localites %}
+              <option value="{{ loc.id_localite }}">{{ loc.nom_localite }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Observations</label>
+            <textarea name="observations" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer" style="background:var(--parch2);">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-em">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ZD -->
+<div class="modal fade" id="modalZD" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.add_zd') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header" style="background:var(--ink);color:var(--parch);">
+          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">Ajouter une Zone de dénombrement</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="background:var(--parch);">
+          <div class="mb-3">
+            <label class="form-label">Code ZD *</label>
+            <input type="text" name="code_zd" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Localité *</label>
+            <select name="id_localite" class="form-select" required>
+              {% for loc in localites %}
+              <option value="{{ loc.id_localite }}">{{ loc.nom_localite }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Quartier</label>
+            <select name="id_quartier" class="form-select">
+              <option value="">— Aucun —</option>
+              {% for q in quartiers %}
+              <option value="{{ q.id_quartier }}">{{ q.nom_quartier }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="background:var(--parch2);">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-em">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Îlot -->
+<div class="modal fade" id="modalIlot" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.add_ilot') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header" style="background:var(--ink);color:var(--parch);">
+          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">Ajouter un îlot</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" style="background:var(--parch);">
+          <div class="mb-3">
+            <label class="form-label">Numéro de l'îlot *</label>
+            <input type="number" name="numero_ilot" class="form-control" min="1" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Code îlot *</label>
+            <input type="text" name="code_ilot" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Zone de dénombrement *</label>
+            <select name="id_zd" class="form-select" required>
+              {% for zd in zones %}
+              <option value="{{ zd.id_zd }}">{{ zd.code_zd }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="background:var(--parch2);">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-em">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

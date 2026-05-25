@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Nouveau membre — RecenStat-CI{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="{{ url_for('enqueteur.fiche_menage', id_menage=menage.id_menage) }}"
+     class="text-decoration-none" style="color:var(--dust); font-size:0.85rem;">
+    <i class="bi bi-arrow-left me-1"></i>Ménage <span class="code-menage">{{ menage.code_menage }}</span>
+  </a>
+  <h2 class="mb-0 mt-1">Ajouter un membre</h2>
+  <div style="color:var(--dust); font-size:0.85rem;">
+    Ménage {{ menage.code_menage }} · {{ menage.individus | length }} membre(s) enregistré(s)
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9">
+    <form method="POST" novalidate id="formIndividu">
+      {{ form.hidden_tag() }}
+
+      <div class="card mb-3">
+        <div class="card-header">
+          <i class="bi bi-person me-2" style="color:var(--em);"></i>Identité
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              {{ form.nom.label(class="form-label") }}
+              {{ form.nom(class="form-control" + (" is-invalid" if form.nom.errors else "")) }}
+              {% for e in form.nom.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.prenom.label(class="form-label") }}
+              {{ form.prenom(class="form-control" + (" is-invalid" if form.prenom.errors else "")) }}
+              {% for e in form.prenom.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.date_naissance.label(class="form-label") }}
+              {{ form.date_naissance(class="form-control" + (" is-invalid" if form.date_naissance.errors else "")) }}
+              <div style="font-size:0.78rem; color:var(--dust); margin-top:0.2rem;">
+                <i class="bi bi-info-circle me-1"></i>L'âge est calculé automatiquement à partir de cette date.
+              </div>
+              {% for e in form.date_naissance.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.sexe.label(class="form-label") }}
+              {{ form.sexe(class="form-select") }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header">
+          <i class="bi bi-diagram-3 me-2" style="color:var(--orange);"></i>Situation familiale
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              {{ form.lien_chef_menage.label(class="form-label") }}
+              {{ form.lien_chef_menage(class="form-select") }}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.situation_matrimoniale.label(class="form-label") }}
+              {{ form.situation_matrimoniale(class="form-select") }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header">
+          <i class="bi bi-book me-2" style="color:#2D5FA8;"></i>Instruction & Scolarisation
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              {{ form.niveau_instruction.label(class="form-label") }}
+              {{ form.niveau_instruction(class="form-select") }}
+            </div>
+            <div class="col-12 col-sm-6">
+              {{ form.statut_scolarisation.label(class="form-label") }}
+              {{ form.statut_scolarisation(class="form-select") }}
+            </div>
+            <div class="col-12 col-sm-6 d-flex align-items-center gap-2 pt-2">
+              {{ form.sait_lire_ecrire(class="form-check-input", style="width:1.2rem;height:1.2rem;") }}
+              {{ form.sait_lire_ecrire.label(class="form-check-label ms-1") }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <i class="bi bi-briefcase me-2" style="color:var(--em);"></i>Activité économique
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              {{ form.statut_activite.label(class="form-label") }}
+              {{ form.statut_activite(class="form-select", id="selectActivite") }}
+            </div>
+            <div class="col-12 col-sm-6" id="professionBlock">
+              {{ form.id_profession.label(class="form-label") }}
+              {{ form.id_profession(class="form-select" + (" is-invalid" if form.id_profession.errors else "")) }}
+              <div style="font-size:0.78rem; color:var(--dust); margin-top:0.2rem;" id="professionHint"></div>
+              {% for e in form.id_profession.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+        <a href="{{ url_for('enqueteur.fiche_menage', id_menage=menage.id_menage) }}"
+           class="btn btn-outline-secondary">Annuler</a>
+        {{ form.submit(class="btn btn-em px-4") }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const selectActivite = document.getElementById('selectActivite');
+const professionHint = document.getElementById('professionHint');
+const professionSelect = document.querySelector('[name="id_profession"]');
+
+function toggleProfession() {
+  const actif = selectActivite.value === 'ACTIF_OCCUPE';
+  if (actif) {
+    professionHint.innerHTML = '<span style="color:var(--orange);"><i class="bi bi-exclamation-triangle me-1"></i>Obligatoire pour un actif occupé.</span>';
+    professionSelect.required = true;
+  } else {
+    professionHint.innerHTML = '';
+    professionSelect.required = false;
+  }
+}
+
+selectActivite.addEventListener('change', toggleProfession);
+toggleProfession();
+</script>
+{% endblock %}

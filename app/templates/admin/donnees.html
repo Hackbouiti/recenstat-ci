@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+{% block title %}Tables de données — RecenStat-CI{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar d-none d-lg-block">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+    <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
+  </div>
+  <div class="nav-section">Tableau de bord</div>
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Vue d'ensemble</a>
+  <div class="nav-section">Gestion</div>
+  <a href="{{ url_for('admin.users') }}" class="nav-link"><i class="bi bi-people"></i> Utilisateurs</a>
+  <a href="{{ url_for('admin.affectations') }}" class="nav-link"><i class="bi bi-map"></i> Affectations</a>
+  <a href="{{ url_for('admin.supervision') }}" class="nav-link"><i class="bi bi-check2-circle"></i> Supervision</a>
+  <div class="nav-section">Territoire</div>
+  <a href="{{ url_for('admin.territoire') }}" class="nav-link"><i class="bi bi-geo-alt"></i> Territoire</a>
+  <div class="nav-section">Données</div>
+  <a href="{{ url_for('admin.donnees') }}" class="nav-link active"><i class="bi bi-table"></i> Tables de données</a>
+  <div class="nav-section">Analyses</div>
+  <a href="{{ url_for('stats.tableau_bord') }}" class="nav-link"><i class="bi bi-bar-chart-line"></i> Statistiques</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h2 class="mb-0">Tables de données</h2>
+  <div style="color:var(--dust); font-size:0.85rem;">Consultation et recherche dans toutes les tables</div>
+</div>
+
+<!-- Onglets -->
+<div class="mb-3 overflow-auto">
+  <div class="d-flex gap-2" style="white-space:nowrap;">
+    {% set tabs = [
+      ('menages',      'bi-house',          'Ménages',       counts.menages),
+      ('individus',    'bi-people',         'Individus',     counts.individus),
+      ('logements',    'bi-building',       'Logements',     counts.logements),
+      ('passages',     'bi-calendar-check', 'Passages',      counts.passages),
+      ('zones',        'bi-grid',           'Zones',         counts.zones),
+      ('utilisateurs', 'bi-person-badge',   'Utilisateurs',  counts.utilisateurs),
+    ] %}
+    {% for t_id, t_icon, t_label, t_count in tabs %}
+    <a href="{{ url_for('admin.donnees', table=t_id) }}"
+       class="btn btn-sm {% if table == t_id %}btn-em{% else %}btn-outline-secondary{% endif %}">
+      <i class="bi {{ t_icon }} me-1"></i>{{ t_label }}
+      <span class="ms-1 px-1 rounded" style="font-size:0.75rem;
+        background:{% if table == t_id %}rgba(255,255,255,0.25){% else %}var(--stone){% endif %};">
+        {{ t_count }}
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Barre de recherche + filtre statut -->
+<form method="GET" class="mb-3 d-flex flex-wrap gap-2 align-items-end">
+  <input type="hidden" name="table" value="{{ table }}">
+  <div class="flex-grow-1" style="min-width:200px;">
+    <input type="text" name="q" class="form-control form-control-sm"
+           placeholder="Rechercher…" value="{{ q }}">
+  </div>
+
+  {% if table == 'menages' and statuts is defined %}
+  <select name="statut" class="form-select form-select-sm" style="width:auto;">
+    <option value="">— Tous les statuts —</option>
+    {% for s in statuts %}
+    <option value="{{ s.code_statut }}" {% if statut == s.code_statut %}selected{% endif %}>
+      {{ s.libelle_statut }}
+    </option>
+    {% endfor %}
+  </select>
+  {% endif %}
+
+  {% if table == 'passages' and statuts_passage is defined %}
+  <select name="statut" class="form-select form-select-sm" style="width:auto;">
+    <option value="">— Tous les statuts —</option>
+    {% for s in statuts_passage %}
+    <option value="{{ s.code_statut }}" {% if statut == s.code_statut %}selected{% endif %}>
+      {{ s.libelle_statut }}
+    </option>
+    {% endfor %}
+  </select>
+  {% endif %}
+
+  {% if table == 'individus' %}
+  <select name="statut" class="form-select form-select-sm" style="width:auto;">
+    <option value="">— Toutes activités —</option>
+    <option value="ACTIF_OCCUPE"    {% if statut=='ACTIF_OCCUPE' %}selected{% endif %}>Actif occupé</option>
+    <option value="CHOMEUR"         {% if statut=='CHOMEUR' %}selected{% endif %}>Chômeur</option>
+    <option value="ELEVE_ETUDIANT"  {% if statut=='ELEVE_ETUDIANT' %}selected{% endif %}>Élève/Étudiant</option>
+    <option value="RETRAITE"        {% if statut=='RETRAITE' %}selected{% endif %}>Retraité</option>
+    <option value="MENAGERE"        {% if statut=='MENAGERE' %}selected{% endif %}>Ménagère</option>
+    <option value="AUTRE_INACTIF"   {% if statut=='AUTRE_INACTIF' %}selected{% endif %}>Autre inactif</option>
+  </select>
+  {% endif %}
+
+  {% if table == 'utilisateurs' %}
+  <select name="statut" class="form-select form-select-sm" style="width:auto;">
+    <option value="">— Tous les rôles —</option>
+    <option value="ADMINISTRATEUR" {% if statut=='ADMINISTRATEUR' %}selected{% endif %}>Administrateur</option>
+    <option value="SUPERVISEUR"    {% if statut=='SUPERVISEUR' %}selected{% endif %}>Superviseur</option>
+    <option value="ENQUETEUR"      {% if statut=='ENQUETEUR' %}selected{% endif %}>Enquêteur</option>
+  </select>
+  {% endif %}
+
+  <button type="submit" class="btn btn-em btn-sm px-3">
+    <i class="bi bi-search me-1"></i>Filtrer
+  </button>
+  {% if q or statut %}
+  <a href="{{ url_for('admin.donnees', table=table) }}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-x me-1"></i>Réinitialiser
+  </a>
+  {% endif %}
+</form>
+
+<!-- ─── TABLE MÉNAGES ──────────────────────────────────────────────────────── -->
+{% if table == 'menages' and pagination %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center py-2">
+    <span style="font-size:0.85rem;"><strong>{{ pagination.total }}</strong> ménage(s) trouvé(s)</span>
+    <a href="{{ url_for('stats.export_csv') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-download me-1"></i>Export CSV
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:0.85rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Code ménage</th>
+          <th>Ilot</th>
+          <th>Zone</th>
+          <th>Membres</th>
+          <th>Statut</th>
+          <th>Créé le</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in pagination.items %}
+        <tr>
+          <td style="color:var(--dust);">{{ m.id_menage }}</td>
+          <td><span class="code-menage">{{ m.code_menage }}</span></td>
+          <td>{{ m.logement.ilot.code_ilot }}</td>
+          <td>{{ m.logement.ilot.zone_denombrement.code_zd }}</td>
+          <td>
+            <span class="badge-statut badge-soumis">{{ m.individus | length }}</span>
+          </td>
+          <td>
+            {% set s = m.statut_menage.code_statut %}
+            {% if s == 'EN_COURS' %}<span class="badge-statut badge-en-cours">En cours</span>
+            {% elif s == 'SOUMIS' %}<span class="badge-statut badge-soumis">Soumis</span>
+            {% elif s == 'RENVOYE' %}<span class="badge-statut badge-renvoye">Renvoyé</span>
+            {% elif s == 'VALIDE' %}<span class="badge-statut badge-valide">Validé</span>
+            {% endif %}
+          </td>
+          <td>{{ m.date_creation.strftime('%d/%m/%Y') }}</td>
+          <td>
+            <a href="{{ url_for('enqueteur.fiche_menage', id_menage=m.id_menage) }}"
+               class="btn btn-sm btn-outline-secondary py-0">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center py-4" style="color:var(--dust);">Aucun résultat.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'admin/_pagination.html' %}
+</div>
+{% endif %}
+
+<!-- ─── TABLE INDIVIDUS ────────────────────────────────────────────────────── -->
+{% if table == 'individus' and pagination %}
+<div class="card">
+  <div class="card-header py-2">
+    <span style="font-size:0.85rem;"><strong>{{ pagination.total }}</strong> individu(s) trouvé(s)</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:0.85rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nom & Prénom</th>
+          <th>Âge</th>
+          <th>Sexe</th>
+          <th>Ménage</th>
+          <th>Lien</th>
+          <th>Matrimonial</th>
+          <th>Instruction</th>
+          <th>Activité</th>
+          <th>Profession</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ind in pagination.items %}
+        <tr>
+          <td style="color:var(--dust);">{{ ind.id_individu }}</td>
+          <td>
+            <strong>{{ ind.nom }} {{ ind.prenom }}</strong>
+            {% if ind.est_chef_menage %}
+              <span class="badge-statut badge-valide ms-1" style="font-size:0.68rem;">Chef</span>
+            {% endif %}
+          </td>
+          <td>{{ ind.age }} ans</td>
+          <td>
+            {% if ind.sexe == 'M' %}
+              <span style="color:#2D5FA8;font-weight:700;">M</span>
+            {% else %}
+              <span style="color:var(--orange);font-weight:700;">F</span>
+            {% endif %}
+          </td>
+          <td><span class="code-menage" style="font-size:0.78rem;">{{ ind.menage.code_menage }}</span></td>
+          <td style="font-size:0.78rem;">{{ ind.lien_chef_menage }}</td>
+          <td style="font-size:0.78rem;">{{ ind.situation_matrimoniale }}</td>
+          <td style="font-size:0.78rem;">{{ ind.niveau_instruction }}</td>
+          <td>
+            <span class="badge-statut {% if ind.statut_activite == 'ACTIF_OCCUPE' %}badge-valide
+              {% elif ind.statut_activite == 'ELEVE_ETUDIANT' %}badge-soumis
+              {% else %}badge-en-cours{% endif %}"
+              style="font-size:0.72rem;">
+              {{ ind.statut_activite }}
+            </span>
+          </td>
+          <td style="font-size:0.78rem;">
+            {{ ind.profession.libelle_profession if ind.profession else '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10" class="text-center py-4" style="color:var(--dust);">Aucun résultat.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'admin/_pagination.html' %}
+</div>
+{% endif %}
+
+<!-- ─── TABLE LOGEMENTS ────────────────────────────────────────────────────── -->
+{% if table == 'logements' and pagination %}
+<div class="card">
+  <div class="card-header py-2">
+    <span style="font-size:0.85rem;"><strong>{{ pagination.total }}</strong> logement(s) trouvé(s)</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:0.85rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Code logement</th>
+          <th>Îlot</th>
+          <th>Type</th>
+          <th>Murs</th>
+          <th>Toit</th>
+          <th>Eau</th>
+          <th>Toilettes</th>
+          <th>Ménages</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in pagination.items %}
+        <tr>
+          <td style="color:var(--dust);">{{ log.id_logement }}</td>
+          <td><span class="code-menage">{{ log.code_logement }}</span></td>
+          <td>{{ log.ilot.code_ilot }}</td>
+          <td>{{ log.type_logement.libelle_type }}</td>
+          <td>{{ log.materiau_mur.libelle_materiau }}</td>
+          <td>{{ log.materiau_toit.libelle_materiau }}</td>
+          <td>{{ log.source_eau.libelle_source }}</td>
+          <td>{{ log.type_toilette.libelle_type }}</td>
+          <td>
+            <span class="badge-statut badge-soumis">{{ log.menages | length }}</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-center py-4" style="color:var(--dust);">Aucun résultat.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'admin/_pagination.html' %}
+</div>
+{% endif %}
+
+<!-- ─── TABLE PASSAGES ─────────────────────────────────────────────────────── -->
+{% if table == 'passages' and pagination %}
+<div class="card">
+  <div class="card-header py-2">
+    <span style="font-size:0.85rem;"><strong>{{ pagination.total }}</strong> passage(s) trouvé(s)</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:0.85rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Ménage</th>
+          <th>Enquêteur</th>
+          <th>N° passage</th>
+          <th>Date</th>
+          <th>Heure</th>
+          <th>Statut</th>
+          <th>Observations</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pagination.items %}
+        <tr>
+          <td style="color:var(--dust);">{{ p.id_passage }}</td>
+          <td><span class="code-menage" style="font-size:0.78rem;">{{ p.menage.code_menage }}</span></td>
+          <td>{{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}</td>
+          <td style="text-align:center;">{{ p.numero_passage }}</td>
+          <td>{{ p.date_passage.strftime('%d/%m/%Y') }}</td>
+          <td>{{ p.heure_passage.strftime('%H:%M') if p.heure_passage else '—' }}</td>
+          <td>
+            <span class="badge-statut badge-en-cours" style="font-size:0.72rem;">
+              {{ p.statut_passage.libelle_statut }}
+            </span>
+          </td>
+          <td style="color:var(--dust); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            {{ p.observations or '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center py-4" style="color:var(--dust);">Aucun résultat.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'admin/_pagination.html' %}
+</div>
+{% endif %}
+
+<!-- ─── TABLE ZONES ────────────────────────────────────────────────────────── -->
+{% if table == 'zones' and pagination %}
+<div class="card">
+  <div class="card-header py-2">
+    <span style="font-size:0.85rem;"><strong>{{ pagination.total }}</strong> zone(s) trouvée(s)</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:0.85rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Code ZD</th>
+          <th>Localité</th>
+          <th>Quartier</th>
+          <th>Îlots</th>
+          <th>Enquêteurs affectés</th>
+          <th>Ménages</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for zd in pagination.items %}
+        {% set ilot_ids = zd.ilots | map(attribute='id_ilot') | list %}
+        <tr>
+          <td style="color:var(--dust);">{{ zd.id_zd }}</td>
+          <td><span class="code-menage">{{ zd.code_zd }}</span></td>
+          <td>{{ zd.localite.nom_localite }}</td>
+          <td>{{ zd.quartier.nom_quartier if zd.quartier else '—' }}</td>
+          <td>
+            <span class="badge-statut badge-soumis">{{ zd.ilots | length }}</span>
+          </td>
+          <td>
+            {% set enqs = zd.affectations | selectattr('actif') | list %}
+            {% if enqs %}
+              {% for aff in enqs %}
+                <span style="font-size:0.78rem;">{{ aff.utilisateur.prenom }} {{ aff.utilisateur.nom }}</span>{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            {% else %}
+              <span style="color:var(--dust);">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set total_men = namespace(n=0) %}
+            {% for ilot in zd.ilots %}
+              {% set total_men.n = total_men.n + ilot.logements | map(attribute='menages') | sum(start=[]) | length %}
+            {% endfor %}
+            <span class="badge-statut badge-en-cours">{{ total_men.n }}</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center py-4" style="color:var(--dust);">Aucun résultat.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'admin/_pagination.html' %}
+</div>
+{% endif %}
+
+<!-- ─── TABLE UTILISATEURS ─────────────────────────────────────────────────── -->
+{% if table == 'utilisateurs' and pagination %}
+<div class="card">
+  <div class="card-header py-2">
+    <span style="font-size:0.85rem;"><strong>{{ pagination.total }}</strong> utilisateur(s) trouvé(s)</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-size:0.85rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nom & Prénom</th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th>ZD affectées</th>
+          <th>Passages</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in pagination.items %}
+        <tr>
+          <td style="color:var(--dust);">{{ u.id_utilisateur }}</td>
+          <td><strong>{{ u.nom }} {{ u.prenom }}</strong></td>
+          <td><span class="mono" style="font-size:0.82rem;">{{ u.email }}</span></td>
+          <td>{{ u.telephone or '—' }}</td>
+          <td>
+            {% if u.role == 'ADMINISTRATEUR' %}
+              <span class="badge-statut" style="background:#e8e0f5;color:#5a2d82;">ADMIN</span>
+            {% elif u.role == 'SUPERVISEUR' %}
+              <span class="badge-statut badge-soumis">SUPERVISEUR</span>
+            {% else %}
+              <span class="badge-statut badge-en-cours">ENQUÊTEUR</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.actif %}
+              <span class="badge-statut badge-valide">Actif</span>
+            {% else %}
+              <span class="badge-statut badge-renvoye">Inactif</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set affs = u.affectations | selectattr('actif') | list %}
+            {% if affs %}
+              {% for a in affs %}
+                <span class="code-menage" style="font-size:0.72rem;">{{ a.zone_denombrement.code_zd }}</span>
+              {% endfor %}
+            {% else %}
+              <span style="color:var(--dust);">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge-statut badge-soumis">{{ u.passages | length }}</span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center py-4" style="color:var(--dust);">Aucun résultat.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'admin/_pagination.html' %}
+</div>
+{% endif %}
+
+{% endblock %}
