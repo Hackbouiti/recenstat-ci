@@ -1,7 +1,7 @@
 :root {
   --ink:        #1A1A18;
   --parch:      #FFFFFF;   /* fond page — blanc pur */
-  --parch2:     #F5F5F5;   /* fond secondaire — blanc très légèrement grisé */
+  --parch2:     #FFFFFF;   /* fond secondaire — blanc pur aussi */
   --stone:      #E0E0E0;   /* bordures */
   --stone2:     #9E9E9E;   /* texte secondaire */
   --dust:       #757575;
@@ -28,8 +28,8 @@ body {
 
 h1, h2, h3, h4 {
   font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 code, pre, .mono {
@@ -241,8 +241,18 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
   outline: none;
 }
 
+/* Neutralise la couleur jaune du remplissage automatique Safari/Chrome */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #1A1A18 !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 .form-label {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.85rem;
   color: var(--ink);
   margin-bottom: 0.3rem;
@@ -307,9 +317,9 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
 
 .login-card .login-title {
   font-family: 'Inter', sans-serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0;
   color: var(--ink);
   margin-bottom: 0.25rem;
 }
