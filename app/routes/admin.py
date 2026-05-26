@@ -119,6 +119,74 @@ def toggle_user(user_id):
     return jsonify({'actif': u.actif})
 
 
+@admin_bp.route('/users/<int:user_id>/edit', methods=['POST'])
+@login_required
+@admin_required
+def edit_user(user_id):
+    u = Utilisateur.query.get_or_404(user_id)
+    nom       = request.form.get('nom', '').strip()
+    prenom    = request.form.get('prenom', '').strip()
+    email     = request.form.get('email', '').strip().lower()
+    telephone = request.form.get('telephone', '').strip()
+    role      = request.form.get('role', '').strip()
+    password  = request.form.get('password', '').strip()
+
+    if not nom or not prenom or not email or not role:
+        flash('Tous les champs obligatoires doivent être remplis.', 'danger')
+        return redirect(url_for('admin.users'))
+
+    # Vérifier unicité email (sauf si c'est le même utilisateur)
+    existing = Utilisateur.query.filter_by(email=email).first()
+    if existing and existing.id_utilisateur != user_id:
+        flash('Cet email est déjà utilisé par un autre compte.', 'danger')
+        return redirect(url_for('admin.users'))
+
+    # Empêcher un admin de se rétrograder lui-même
+    if u.id_utilisateur == current_user.id_utilisateur and role != 'ADMINISTRATEUR':
+        flash('Vous ne pouvez pas changer votre propre rôle.', 'danger')
+        return redirect(url_for('admin.users'))
+
+    u.nom       = nom
+    u.prenom    = prenom
+    u.email     = email
+    u.telephone = telephone or None
+    u.role      = role
+    if password:
+        u.set_password(password)
+
+    db.session.commit()
+    flash(f'Utilisateur {u.prenom} {u.nom} modifié avec succès.', 'success')
+    return redirect(url_for('admin.users'))
+
+
+@admin_bp.route('/users/<int:user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    u = Utilisateur.query.get_or_404(user_id)
+
+    # Empêcher l'auto-suppression
+    if u.id_utilisateur == current_user.id_utilisateur:
+        flash('Vous ne pouvez pas supprimer votre propre compte.', 'danger')
+        return redirect(url_for('admin.users'))
+
+    # Vérifier si l'utilisateur a des passages enregistrés
+    if u.passages:
+        flash(
+            f'{u.prenom} {u.nom} a {len(u.passages)} passage(s) enregistré(s). '
+            'Désactivez le compte plutôt que de le supprimer.',
+            'warning'
+        )
+        return redirect(url_for('admin.users'))
+
+    # Supprimer les affectations puis l'utilisateur
+    AffectationZD.query.filter_by(id_utilisateur=user_id).delete()
+    db.session.delete(u)
+    db.session.commit()
+    flash(f'Utilisateur {u.prenom} {u.nom} supprimé.', 'success')
+    return redirect(url_for('admin.users'))
+
+
 @admin_bp.route('/affectations', methods=['GET', 'POST'])
 @login_required
 @admin_required

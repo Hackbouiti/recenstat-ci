@@ -84,7 +84,24 @@
               {% endif %}
             </button>
           </td>
-          <td></td>
+          <td>
+            <div class="d-flex gap-1">
+              <!-- Modifier -->
+              <button class="btn btn-sm btn-outline-secondary py-0 px-2"
+                      title="Modifier"
+                      onclick="ouvrirModifier({{ u.id_utilisateur }}, '{{ u.nom }}', '{{ u.prenom }}', '{{ u.email }}', '{{ u.telephone or '' }}', '{{ u.role }}')">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <!-- Supprimer -->
+              {% if u.id_utilisateur != current_user.id_utilisateur %}
+              <button class="btn btn-sm btn-outline-danger py-0 px-2"
+                      title="Supprimer"
+                      onclick="ouvrirSuppression({{ u.id_utilisateur }}, '{{ u.prenom }} {{ u.nom }}')">
+                <i class="bi bi-trash"></i>
+              </button>
+              {% endif %}
+            </div>
+          </td>
         </tr>
         {% else %}
         <tr><td colspan="6" class="text-center py-4" style="color:var(--dust);">Aucun utilisateur enregistré.</td></tr>
@@ -144,12 +161,96 @@
 </div>
 {% endblock %}
 
+<!-- ── Modal Modifier utilisateur ─────────────────────────── -->
+<div class="modal fade" id="modalModifier" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formModifier" method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header" style="background:var(--ink); color:#fff;">
+          <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Modifier l'utilisateur</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label">Nom</label>
+              <input type="text" name="nom" id="edit_nom" class="form-control" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Prénom</label>
+              <input type="text" name="prenom" id="edit_prenom" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" id="edit_email" class="form-control" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Téléphone</label>
+              <input type="tel" name="telephone" id="edit_telephone" class="form-control">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Rôle</label>
+              <select name="role" id="edit_role" class="form-select" required>
+                <option value="ENQUETEUR">Enquêteur</option>
+                <option value="SUPERVISEUR">Superviseur</option>
+                <option value="ADMINISTRATEUR">Administrateur</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Nouveau mot de passe <span style="color:var(--dust); font-weight:400;">(laisser vide pour ne pas changer)</span></label>
+              <input type="password" name="password" class="form-control" placeholder="••••••••" autocomplete="new-password">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-em"><i class="bi bi-check2 me-1"></i>Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Supprimer utilisateur ────────────────────────── -->
+<div class="modal fade" id="modalSupprimer" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <form id="formSupprimer" method="POST" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header" style="background:#c0392b; color:#fff;">
+          <h5 class="modal-title"><i class="bi bi-trash me-2"></i>Supprimer</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center py-4">
+          <i class="bi bi-exclamation-triangle" style="font-size:2.5rem; color:#c0392b;"></i>
+          <p class="mt-3 mb-1">Supprimer définitivement :</p>
+          <strong id="delete_nom_affiche"></strong>
+          <p class="mt-2" style="font-size:0.83rem; color:var(--dust);">
+            Si cet utilisateur a des passages enregistrés, la suppression sera bloquée et vous devrez le désactiver à la place.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Supprimer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
 {% block extra_js %}
 <script>
+// Toggle actif/inactif
 document.querySelectorAll('.toggle-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     const id = btn.dataset.userId;
-    const res = await fetch(`/admin/users/${id}/toggle`, { method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token() }}'} });
+    const res = await fetch(`/admin/users/${id}/toggle`, {
+      method: 'POST',
+      headers: {'X-CSRFToken': '{{ csrf_token() }}'}
+    });
     const data = await res.json();
     const icon = btn.querySelector('i');
     if (data.actif) {
@@ -161,5 +262,23 @@ document.querySelectorAll('.toggle-btn').forEach(btn => {
     }
   });
 });
+
+// Ouvrir modal modifier avec pré-remplissage
+function ouvrirModifier(id, nom, prenom, email, telephone, role) {
+  document.getElementById('edit_nom').value       = nom;
+  document.getElementById('edit_prenom').value    = prenom;
+  document.getElementById('edit_email').value     = email;
+  document.getElementById('edit_telephone').value = telephone;
+  document.getElementById('edit_role').value      = role;
+  document.getElementById('formModifier').action  = `/admin/users/${id}/edit`;
+  new bootstrap.Modal(document.getElementById('modalModifier')).show();
+}
+
+// Ouvrir modal supprimer
+function ouvrirSuppression(id, nomComplet) {
+  document.getElementById('delete_nom_affiche').textContent = nomComplet;
+  document.getElementById('formSupprimer').action = `/admin/users/${id}/delete`;
+  new bootstrap.Modal(document.getElementById('modalSupprimer')).show();
+}
 </script>
 {% endblock %}
