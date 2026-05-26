@@ -3,7 +3,7 @@
 
 {% block sidebar %}
 <div class="sidebar d-none d-lg-block">
-  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Inter',sans-serif; font-size:0.95rem; font-weight:700; letter-spacing:-0.01em;">
     <i class="bi bi-bar-chart-line me-2" style="color:var(--orange);"></i>Statistiques
   </div>
   <div class="nav-section">Navigation</div>
@@ -29,45 +29,106 @@
   </a>
 </div>
 
-<!-- Filtres -->
+<!-- Filtres cascadants -->
 <div class="card mb-4">
   <div class="card-body py-2">
-    <form method="GET" class="row g-2 align-items-end">
+    <form method="GET" id="filtresForm" class="row g-2 align-items-end">
+
       <div class="col-12 col-sm-4">
         <label class="form-label mb-1" style="font-size:0.82rem;">Commune</label>
-        <select name="commune_id" class="form-select form-select-sm">
+        <select name="commune_id" id="sel_commune" class="form-select form-select-sm">
           <option value="">— Toutes —</option>
           {% for c in communes %}
           <option value="{{ c.id_localite }}" {% if commune_id == c.id_localite %}selected{% endif %}>{{ c.nom_localite }}</option>
           {% endfor %}
         </select>
       </div>
+
       <div class="col-12 col-sm-4">
         <label class="form-label mb-1" style="font-size:0.82rem;">Quartier</label>
-        <select name="quartier_id" class="form-select form-select-sm">
+        <select name="quartier_id" id="sel_quartier" class="form-select form-select-sm">
           <option value="">— Tous —</option>
           {% for q in quartiers %}
-          <option value="{{ q.id_quartier }}" {% if quartier_id == q.id_quartier %}selected{% endif %}>{{ q.nom_quartier }}</option>
+          <option value="{{ q.id_quartier }}"
+                  data-localite="{{ q.id_localite }}"
+                  {% if quartier_id == q.id_quartier %}selected{% endif %}>{{ q.nom_quartier }}</option>
           {% endfor %}
         </select>
       </div>
+
       <div class="col-12 col-sm-3">
         <label class="form-label mb-1" style="font-size:0.82rem;">Zone de dénombrement</label>
-        <select name="zd_id" class="form-select form-select-sm">
+        <select name="zd_id" id="sel_zd" class="form-select form-select-sm">
           <option value="">— Toutes —</option>
           {% for z in zones %}
-          <option value="{{ z.id_zd }}" {% if zd_id == z.id_zd %}selected{% endif %}>{{ z.code_zd }}</option>
+          <option value="{{ z.id_zd }}"
+                  data-quartier="{{ z.id_quartier }}"
+                  {% if zd_id == z.id_zd %}selected{% endif %}>{{ z.code_zd }}</option>
           {% endfor %}
         </select>
       </div>
+
       <div class="col-12 col-sm-1">
         <button type="submit" class="btn btn-em btn-sm w-100">
           <i class="bi bi-funnel"></i>
         </button>
       </div>
+
     </form>
   </div>
 </div>
+
+<script>
+(function () {
+  const selCommune  = document.getElementById('sel_commune');
+  const selQuartier = document.getElementById('sel_quartier');
+  const selZD       = document.getElementById('sel_zd');
+
+  // Sauvegarde de toutes les options originales
+  const allQuartierOpts = Array.from(selQuartier.options).slice(1); // skip "— Tous —"
+  const allZDOpts       = Array.from(selZD.options).slice(1);       // skip "— Toutes —"
+
+  function filterQuartiers(communeId) {
+    // Vider et reconstruire
+    while (selQuartier.options.length > 1) selQuartier.remove(1);
+    allQuartierOpts.forEach(opt => {
+      if (!communeId || opt.dataset.localite === communeId) {
+        selQuartier.add(opt.cloneNode(true));
+      }
+    });
+    // Si le quartier sélectionné n'est plus disponible, réinitialiser
+    if (selQuartier.value && !Array.from(selQuartier.options).some(o => o.value === selQuartier.value)) {
+      selQuartier.value = '';
+    }
+  }
+
+  function filterZDs(quartierId) {
+    while (selZD.options.length > 1) selZD.remove(1);
+    allZDOpts.forEach(opt => {
+      if (!quartierId || opt.dataset.quartier === quartierId) {
+        selZD.add(opt.cloneNode(true));
+      }
+    });
+    if (selZD.value && !Array.from(selZD.options).some(o => o.value === selZD.value)) {
+      selZD.value = '';
+    }
+  }
+
+  selCommune.addEventListener('change', function () {
+    filterQuartiers(this.value);
+    filterZDs('');   // réinitialise ZD quand commune change
+    selZD.value = '';
+  });
+
+  selQuartier.addEventListener('change', function () {
+    filterZDs(this.value);
+  });
+
+  // Appliquer au chargement si des filtres sont déjà actifs
+  if (selCommune.value)  filterQuartiers(selCommune.value);
+  if (selQuartier.value) filterZDs(selQuartier.value);
+})();
+</script>
 
 <!-- KPIs -->
 <div class="row g-3 mb-4">

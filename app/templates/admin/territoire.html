@@ -3,7 +3,7 @@
 
 {% block sidebar %}
 <div class="sidebar d-none d-lg-block">
-  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Inter',sans-serif; font-size:1rem; font-weight:700;">
     <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
   </div>
   <div class="nav-section">Tableau de bord</div>
@@ -143,7 +143,7 @@
       <form method="POST" action="{{ url_for('admin.add_localite') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-header" style="background:var(--ink);color:var(--parch);">
-          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">Ajouter une localité</h5>
+          <h5 class="modal-title" style="font-family:'Inter',sans-serif;">Ajouter une localité</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" style="background:var(--parch);">
@@ -189,7 +189,7 @@
       <form method="POST" action="{{ url_for('admin.add_quartier') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-header" style="background:var(--ink);color:var(--parch);">
-          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">Ajouter un quartier</h5>
+          <h5 class="modal-title" style="font-family:'Inter',sans-serif;">Ajouter un quartier</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" style="background:var(--parch);">
@@ -230,7 +230,7 @@
       <form method="POST" action="{{ url_for('admin.add_zd') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-header" style="background:var(--ink);color:var(--parch);">
-          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">Ajouter une Zone de dénombrement</h5>
+          <h5 class="modal-title" style="font-family:'Inter',sans-serif;">Ajouter une Zone de dénombrement</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" style="background:var(--parch);">
@@ -272,7 +272,7 @@
       <form method="POST" action="{{ url_for('admin.add_ilot') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-header" style="background:var(--ink);color:var(--parch);">
-          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">Ajouter un îlot</h5>
+          <h5 class="modal-title" style="font-family:'Inter',sans-serif;">Ajouter un îlot</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body" style="background:var(--parch);">

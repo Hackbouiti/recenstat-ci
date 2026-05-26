@@ -3,7 +3,7 @@
 
 {% block sidebar %}
 <div class="sidebar d-none d-lg-block">
-  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Playfair Display',serif; font-size:1rem; font-weight:700;">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Inter',sans-serif; font-size:1rem; font-weight:700;">
     <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
   </div>
   <div class="nav-section">Tableau de bord</div>
@@ -101,7 +101,7 @@
       <form method="POST" action="{{ url_for('admin.users') }}" novalidate>
         {{ form.hidden_tag() }}
         <div class="modal-header" style="background:var(--ink); color:var(--parch);">
-          <h5 class="modal-title" style="font-family:'Playfair Display',serif;">
+          <h5 class="modal-title" style="font-family:'Inter',sans-serif;">
             <i class="bi bi-person-plus me-2"></i>Créer un utilisateur
           </h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>

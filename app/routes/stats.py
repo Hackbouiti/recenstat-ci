@@ -109,9 +109,20 @@ def tableau_bord():
         zd_scol_labels.append(zd.code_zd)
         zd_scol_data.append(taux)
 
+    # JSON pour les filtres cascadants côté JS
+    all_quartiers_json = [
+        {'id': q.id_quartier, 'nom': q.nom_quartier, 'id_localite': q.id_localite}
+        for q in quartiers
+    ]
+    all_zones_json = [
+        {'id': z.id_zd, 'code': z.code_zd, 'id_quartier': z.id_quartier}
+        for z in zones
+    ]
+
     return render_template('stats/tableau_bord.html',
         communes=communes, quartiers=quartiers, zones=zones,
         commune_id=commune_id, quartier_id=quartier_id, zd_id=zd_id,
+        all_quartiers_json=all_quartiers_json, all_zones_json=all_zones_json,
         nb_menages=nb_menages, nb_individus=nb_individus, taille_moy=taille_moy,
         taux_scol=taux_scol, taux_activite=taux_activite, taux_eau=taux_eau,
         tranches=tranches, pyramide_h=pyramide_h, pyramide_f=pyramide_f,

@@ -127,18 +127,20 @@
           <i class="bi bi-calendar-check me-2"></i>Enregistrer un passage
         </a>
 
-        {% if peut_soumettre %}
-        <form method="POST" action="{{ url_for('enqueteur.soumettre_menage', id_menage=menage.id_menage) }}"
-              onsubmit="return confirm('Soumettre le ménage {{ menage.code_menage }} pour validation ?');">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-em">
-            <i class="bi bi-send me-2"></i>Soumettre pour validation
+        {% if current_user.role == 'ENQUETEUR' %}
+          {% if peut_soumettre %}
+          <form method="POST" action="{{ url_for('enqueteur.soumettre_menage', id_menage=menage.id_menage) }}"
+                onsubmit="return confirm('Soumettre le ménage {{ menage.code_menage }} pour validation ?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-em">
+              <i class="bi bi-send me-2"></i>Soumettre pour validation
+            </button>
+          </form>
+          {% elif menage.individus | length == 0 %}
+          <button class="btn btn-em" disabled title="Ajoutez au moins un membre avant de soumettre.">
+            <i class="bi bi-send me-2"></i>Soumettre (aucun membre)
           </button>
-        </form>
-        {% elif menage.individus | length == 0 %}
-        <button class="btn btn-em" disabled title="Ajoutez au moins un membre avant de soumettre.">
-          <i class="bi bi-send me-2"></i>Soumettre (aucun membre)
-        </button>
+          {% endif %}
         {% endif %}
       </div>
     </div>

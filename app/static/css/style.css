@@ -17,17 +17,19 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
-  font-family: 'Lato', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background-color: var(--parch);
   color: var(--ink);
   font-size: 15px;
   line-height: 1.6;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 code, pre, .mono {
@@ -62,11 +64,11 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
 }
 
 .navbar-brand {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   color: var(--parch) !important;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
 }
 
 .navbar-brand span.accent { color: var(--orange); }
@@ -157,9 +159,10 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
 .kpi-card.kpi-dust   { border-left-color: var(--dust); }
 
 .kpi-card .kpi-value {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.2rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 2rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1.1;
   color: var(--ink);
 }
@@ -276,9 +279,10 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
 .card-header {
   background: var(--parch2);
   border-bottom: 1px solid var(--stone);
-  font-weight: 700;
-  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
   padding: 0.85rem 1.25rem;
+  font-size: 0.92rem;
 }
 
 /* ── Page login ───────────────────────────────────────── */
@@ -300,9 +304,10 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
 }
 
 .login-card .login-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.6rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.5rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--ink);
   margin-bottom: 0.25rem;
 }
