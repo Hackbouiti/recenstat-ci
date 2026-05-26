@@ -249,6 +249,18 @@ def supervision():
     return render_template('admin/supervision.html', fiches=fiches)
 
 
+@admin_bp.route('/supervision/<int:menage_id>')
+@login_required
+@admin_or_superviseur_required
+def inspecter_menage(menage_id):
+    menage = Menage.query.get_or_404(menage_id)
+    ilot   = menage.logement.ilot
+    zd     = ilot.zone_denombrement
+    passages = sorted(menage.passages, key=lambda p: (p.date_passage, p.numero_passage))
+    return render_template('admin/inspection_menage.html',
+        menage=menage, ilot=ilot, zd=zd, passages=passages)
+
+
 @admin_bp.route('/supervision/<int:menage_id>/valider', methods=['POST'])
 @login_required
 @admin_or_superviseur_required

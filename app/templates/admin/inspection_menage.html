@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}Inspection {{ menage.code_menage }} — RecenStat-CI{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar d-none d-lg-block">
+  <div class="px-3 mb-3" style="color:var(--parch2); font-family:'Inter',sans-serif; font-size:0.95rem; font-weight:700;">
+    <i class="bi bi-clipboard-data me-2" style="color:var(--orange);"></i>Administration
+  </div>
+  <div class="nav-section">Tableau de bord</div>
+  <a href="{{ url_for('admin.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Vue d'ensemble</a>
+  <div class="nav-section">Gestion</div>
+  <a href="{{ url_for('admin.users') }}" class="nav-link"><i class="bi bi-people"></i> Utilisateurs</a>
+  <a href="{{ url_for('admin.affectations') }}" class="nav-link"><i class="bi bi-map"></i> Affectations</a>
+  <a href="{{ url_for('admin.supervision') }}" class="nav-link active"><i class="bi bi-check2-circle"></i> Supervision</a>
+  <div class="nav-section">Territoire</div>
+  <a href="{{ url_for('admin.territoire') }}" class="nav-link"><i class="bi bi-geo-alt"></i> Territoire</a>
+  <div class="nav-section">Données</div>
+  <a href="{{ url_for('admin.donnees') }}" class="nav-link"><i class="bi bi-table"></i> Tables de données</a>
+  <div class="nav-section">Analyses</div>
+  <a href="{{ url_for('stats.tableau_bord') }}" class="nav-link"><i class="bi bi-bar-chart-line"></i> Statistiques</a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- En-tête -->
+<div class="mb-4">
+  <a href="{{ url_for('admin.supervision') }}"
+     style="font-size:0.85rem; color:var(--dust); text-decoration:none;">
+    <i class="bi bi-arrow-left me-1"></i>Retour à la supervision
+  </a>
+  <div class="d-flex align-items-center justify-content-between mt-2 flex-wrap gap-2">
+    <div>
+      <h2 class="mb-0">
+        <span class="code-menage" style="font-size:1.25rem;">{{ menage.code_menage }}</span>
+      </h2>
+      <div style="color:var(--dust); font-size:0.85rem;">
+        {{ zd.code_zd }}
+        {% if zd.quartier %} · {{ zd.quartier.nom_quartier }}{% endif %}
+        · Îlot {{ ilot.numero_ilot }}
+      </div>
+    </div>
+    <span class="badge-statut badge-soumis" style="font-size:0.85rem;">
+      <i class="bi bi-hourglass-split me-1"></i>En attente de validation
+    </span>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  <!-- ── Logement ──────────────────────────────────────────── -->
+  <div class="col-12 col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <i class="bi bi-house me-2" style="color:var(--em);"></i>Logement
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0" style="font-size:0.88rem;">
+          <tr>
+            <td style="color:var(--dust); width:45%; padding-left:1rem;">Type</td>
+            <td><strong>{{ menage.logement.type_logement.libelle_type }}</strong></td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust); padding-left:1rem;">Murs</td>
+            <td>{{ menage.logement.materiau_mur.libelle_materiau }}</td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust); padding-left:1rem;">Toit</td>
+            <td>{{ menage.logement.materiau_toit.libelle_materiau }}</td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust); padding-left:1rem;">Eau</td>
+            <td>{{ menage.logement.source_eau.libelle_source }}</td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust); padding-left:1rem;">Toilettes</td>
+            <td>{{ menage.logement.type_toilette.libelle_type }}</td>
+          </tr>
+          <tr>
+            <td style="color:var(--dust); padding-left:1rem;">Code</td>
+            <td><span class="code-menage" style="font-size:0.8rem;">{{ menage.logement.code_logement }}</span></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Membres ───────────────────────────────────────────── -->
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-people me-2" style="color:var(--orange);"></i>
+          Membres ({{ menage.individus | length }})
+        </span>
+      </div>
+      {% if menage.individus %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" style="font-size:0.85rem;">
+          <thead>
+            <tr>
+              <th>Nom & Prénom</th>
+              <th>Âge</th>
+              <th>Sexe</th>
+              <th>Lien</th>
+              <th>Sit. mat.</th>
+              <th>Instruction</th>
+              <th>Activité</th>
+              <th>Profession</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ind in menage.individus %}
+            <tr>
+              <td>
+                <strong>{{ ind.nom }} {{ ind.prenom }}</strong>
+                {% if ind.est_chef_menage %}
+                  <span class="badge-statut badge-valide ms-1" style="font-size:0.68rem;">Chef</span>
+                {% endif %}
+              </td>
+              <td>{{ ind.age }} ans</td>
+              <td>
+                {% if ind.sexe == 'M' %}
+                  <span style="color:#2D5FA8; font-weight:700;">M</span>
+                {% else %}
+                  <span style="color:var(--orange); font-weight:700;">F</span>
+                {% endif %}
+              </td>
+              <td style="font-size:0.78rem; color:var(--dust);">
+                {{ ind.lien_chef_menage | replace('_', ' ') }}
+              </td>
+              <td style="font-size:0.78rem; color:var(--dust);">
+                {{ ind.situation_matrimoniale | replace('_', ' ') }}
+              </td>
+              <td style="font-size:0.78rem;">{{ ind.niveau_instruction | replace('_', ' ') }}</td>
+              <td>
+                <span class="badge-statut
+                  {% if ind.statut_activite == 'ACTIF_OCCUPE' %}badge-valide
+                  {% elif ind.statut_activite == 'ELEVE_ETUDIANT' %}badge-soumis
+                  {% elif ind.statut_activite == 'CHOMEUR' %}badge-renvoye
+                  {% else %}badge-en-cours{% endif %}"
+                  style="font-size:0.7rem;">
+                  {{ ind.statut_activite | replace('_', ' ') }}
+                </span>
+              </td>
+              <td style="font-size:0.78rem; color:var(--dust);">
+                {{ ind.profession.libelle_profession if ind.profession else '—' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body text-center py-4" style="color:var(--dust);">
+        <i class="bi bi-person-x" style="font-size:2rem;"></i>
+        <div class="mt-2">Aucun membre enregistré.</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Historique des passages ───────────────────────────── -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-clock-history me-2" style="color:var(--dust);"></i>Historique des passages
+      </div>
+      {% if passages %}
+      <div class="table-responsive">
+        <table class="table table-sm mb-0" style="font-size:0.85rem;">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Heure</th>
+              <th>Enquêteur</th>
+              <th>Statut</th>
+              <th>Observations</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in passages %}
+            <tr>
+              <td>{{ p.numero_passage }}</td>
+              <td>{{ p.date_passage.strftime('%d/%m/%Y') }}</td>
+              <td>{{ p.heure_passage.strftime('%H:%M') if p.heure_passage else '—' }}</td>
+              <td>{{ p.utilisateur.prenom }} {{ p.utilisateur.nom }}</td>
+              <td>
+                <span class="badge-statut badge-en-cours" style="font-size:0.72rem;">
+                  {{ p.statut_passage.libelle_statut }}
+                </span>
+              </td>
+              <td style="color:var(--dust); max-width:280px;">{{ p.observations or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body py-3" style="color:var(--dust); font-size:0.88rem;">
+        Aucun passage enregistré.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Décision ──────────────────────────────────────────── -->
+  <div class="col-12">
+    <div class="card" style="border: 2px solid var(--stone);">
+      <div class="card-header" style="background:var(--parch2);">
+        <i class="bi bi-gavel me-2" style="color:var(--em);"></i>
+        <strong>Décision</strong>
+      </div>
+      <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+
+        <!-- Valider -->
+        <form method="POST" action="{{ url_for('admin.valider_menage', menage_id=menage.id_menage) }}"
+              onsubmit="return confirm('Valider définitivement le ménage {{ menage.code_menage }} ?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-em px-4">
+            <i class="bi bi-check-circle me-2"></i>Valider ce ménage
+          </button>
+        </form>
+
+        <!-- Renvoyer -->
+        <button class="btn btn-orange px-4" data-bs-toggle="modal" data-bs-target="#modalRenvoyer">
+          <i class="bi bi-arrow-return-left me-2"></i>Renvoyer en correction
+        </button>
+
+        <a href="{{ url_for('admin.supervision') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-x me-1"></i>Décider plus tard
+        </a>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal renvoi -->
+<div class="modal fade" id="modalRenvoyer" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('admin.renvoyer_menage', menage_id=menage.id_menage) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header" style="background:var(--ink); color:#fff;">
+          <h5 class="modal-title">
+            <i class="bi bi-arrow-return-left me-2"></i>Renvoyer en correction
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:0.9rem;">
+            Ménage : <span class="code-menage">{{ menage.code_menage }}</span>
+          </p>
+          <label class="form-label">Motif du renvoi <span style="color:var(--dust); font-weight:400;">(visible par l'enquêteur)</span></label>
+          <textarea name="observations" class="form-control" rows="4"
+                    placeholder="Décrivez les corrections attendues..." required></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-orange">
+            <i class="bi bi-arrow-return-left me-1"></i>Renvoyer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

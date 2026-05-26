@@ -68,7 +68,11 @@
             {% else %}—{% endif %}
           </td>
           <td class="text-end">
-            <form method="POST" action="{{ url_for('admin.valider_menage', menage_id=f.menage.id_menage) }}" class="d-inline"
+            <a href="{{ url_for('admin.inspecter_menage', menage_id=f.menage.id_menage) }}"
+               class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-eye me-1"></i>Inspecter
+            </a>
+            <form method="POST" action="{{ url_for('admin.valider_menage', menage_id=f.menage.id_menage) }}" class="d-inline ms-1"
                   onsubmit="return confirm('Valider le ménage {{ f.menage.code_menage }} ?');">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-sm btn-em">
