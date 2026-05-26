@@ -65,12 +65,6 @@ def dashboard():
             zd_labels.append(zd.code_zd)
             zd_data.append(round(valides / total * 100, 1))
 
-    activite_recente = db.session.query(Utilisateur, Menage)\
-        .join(AffectationZD, AffectationZD.id_utilisateur == Utilisateur.id_utilisateur)\
-        .join(ZoneDenombrement, ZoneDenombrement.id_zd == AffectationZD.id_zd)\
-        .filter(Utilisateur.role == 'ENQUETEUR')\
-        .limit(10).all()
-
     return render_template('admin/dashboard.html',
         total_menages=total_menages,
         fiches_validees=fiches_validees,
@@ -78,7 +72,6 @@ def dashboard():
         enqueteurs_actifs=enqueteurs_actifs,
         zd_labels=zd_labels,
         zd_data=zd_data,
-        activite_recente=activite_recente,
     )
 
 
