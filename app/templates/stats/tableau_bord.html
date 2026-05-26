@@ -29,7 +29,7 @@
   </a>
 </div>
 
-<!-- Filtres cascadants -->
+<!-- Filtres cascadants (bi-directionnels) -->
 <div class="card mb-4">
   <div class="card-body py-2">
     <form method="GET" id="filtresForm" class="row g-2 align-items-end">
@@ -39,7 +39,9 @@
         <select name="commune_id" id="sel_commune" class="form-select form-select-sm">
           <option value="">— Toutes —</option>
           {% for c in communes %}
-          <option value="{{ c.id_localite }}" {% if commune_id == c.id_localite %}selected{% endif %}>{{ c.nom_localite }}</option>
+          <option value="{{ c.id_localite }}" {% if commune_id == c.id_localite %}selected{% endif %}>
+            {{ c.nom_localite }}
+          </option>
           {% endfor %}
         </select>
       </div>
@@ -51,7 +53,9 @@
           {% for q in quartiers %}
           <option value="{{ q.id_quartier }}"
                   data-localite="{{ q.id_localite }}"
-                  {% if quartier_id == q.id_quartier %}selected{% endif %}>{{ q.nom_quartier }}</option>
+                  {% if quartier_id == q.id_quartier %}selected{% endif %}>
+            {{ q.nom_quartier }}
+          </option>
           {% endfor %}
         </select>
       </div>
@@ -62,8 +66,11 @@
           <option value="">— Toutes —</option>
           {% for z in zones %}
           <option value="{{ z.id_zd }}"
-                  data-quartier="{{ z.id_quartier }}"
-                  {% if zd_id == z.id_zd %}selected{% endif %}>{{ z.code_zd }}</option>
+                  data-quartier="{{ z.id_quartier or '' }}"
+                  data-localite="{{ z.id_localite or '' }}"
+                  {% if zd_id == z.id_zd %}selected{% endif %}>
+            {{ z.code_zd }}
+          </option>
           {% endfor %}
         </select>
       </div>
@@ -84,49 +91,74 @@
   const selQuartier = document.getElementById('sel_quartier');
   const selZD       = document.getElementById('sel_zd');
 
-  // Sauvegarde de toutes les options originales
-  const allQuartierOpts = Array.from(selQuartier.options).slice(1); // skip "— Tous —"
-  const allZDOpts       = Array.from(selZD.options).slice(1);       // skip "— Toutes —"
+  // Snapshot de toutes les options (hors placeholder)
+  const allQ  = Array.from(selQuartier.options).slice(1).map(o => o.cloneNode(true));
+  const allZD = Array.from(selZD.options).slice(1).map(o => o.cloneNode(true));
 
-  function filterQuartiers(communeId) {
-    // Vider et reconstruire
-    while (selQuartier.options.length > 1) selQuartier.remove(1);
-    allQuartierOpts.forEach(opt => {
-      if (!communeId || opt.dataset.localite === communeId) {
-        selQuartier.add(opt.cloneNode(true));
-      }
-    });
-    // Si le quartier sélectionné n'est plus disponible, réinitialiser
-    if (selQuartier.value && !Array.from(selQuartier.options).some(o => o.value === selQuartier.value)) {
-      selQuartier.value = '';
+  function rebuildSelect(sel, opts) {
+    const current = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    opts.forEach(o => sel.add(o.cloneNode(true)));
+    // restaurer la valeur si elle existe encore
+    if (current && Array.from(sel.options).some(o => o.value === current)) {
+      sel.value = current;
+    } else {
+      sel.value = '';
     }
   }
 
-  function filterZDs(quartierId) {
-    while (selZD.options.length > 1) selZD.remove(1);
-    allZDOpts.forEach(opt => {
-      if (!quartierId || opt.dataset.quartier === quartierId) {
-        selZD.add(opt.cloneNode(true));
-      }
-    });
-    if (selZD.value && !Array.from(selZD.options).some(o => o.value === selZD.value)) {
-      selZD.value = '';
-    }
+  function applyCommune(communeId, keepQ, keepZD) {
+    const filtQ  = communeId ? allQ.filter(o => o.dataset.localite === String(communeId)) : allQ;
+    const filtZD = communeId ? allZD.filter(o => o.dataset.localite === String(communeId)) : allZD;
+    rebuildSelect(selQuartier, filtQ);
+    rebuildSelect(selZD, filtZD);
+    if (keepQ)  selQuartier.value = String(keepQ);
+    if (keepZD) selZD.value       = String(keepZD);
   }
 
+  function applyQuartier(quartierId, keepZD) {
+    const filtZD = quartierId ? allZD.filter(o => o.dataset.quartier === String(quartierId)) : allZD;
+    rebuildSelect(selZD, filtZD);
+    if (keepZD) selZD.value = String(keepZD);
+  }
+
+  // ── Événements ──────────────────────────────────────────────
   selCommune.addEventListener('change', function () {
-    filterQuartiers(this.value);
-    filterZDs('');   // réinitialise ZD quand commune change
+    applyCommune(this.value, null, null);
+    selQuartier.value = '';
     selZD.value = '';
   });
 
   selQuartier.addEventListener('change', function () {
-    filterZDs(this.value);
+    // Remonter la commune correspondante
+    if (this.value) {
+      const opt = Array.from(selQuartier.options).find(o => o.value === this.value);
+      if (opt && opt.dataset.localite) selCommune.value = opt.dataset.localite;
+    }
+    applyQuartier(this.value, null);
   });
 
-  // Appliquer au chargement si des filtres sont déjà actifs
-  if (selCommune.value)  filterQuartiers(selCommune.value);
-  if (selQuartier.value) filterZDs(selQuartier.value);
+  selZD.addEventListener('change', function () {
+    // Remonter quartier + commune correspondants
+    if (this.value) {
+      const opt = Array.from(selZD.options).find(o => o.value === this.value);
+      if (opt) {
+        const localiteId  = opt.dataset.localite;
+        const quartierId  = opt.dataset.quartier;
+        if (localiteId) selCommune.value = localiteId;
+        // Reconstruire les quartiers filtrés par commune, puis sélectionner le bon
+        if (localiteId) applyCommune(localiteId, quartierId, this.value);
+      }
+    }
+  });
+
+  // ── Initialisation au chargement ────────────────────────────
+  const initCommune  = selCommune.value;
+  const initQuartier = selQuartier.value;
+  const initZD       = selZD.value;
+
+  if (initCommune)  applyCommune(initCommune, initQuartier, initZD);
+  else if (initQuartier) applyQuartier(initQuartier, initZD);
 })();
 </script>
 
@@ -192,10 +224,10 @@
   <div class="col-12 col-lg-5">
     <div class="card">
       <div class="card-header">
-        <i class="bi bi-pie-chart me-2" style="color:var(--orange);"></i>Répartition des activités
+        <i class="bi bi-bar-chart-steps me-2" style="color:var(--orange);"></i>Répartition des activités
       </div>
-      <div class="card-body d-flex align-items-center justify-content-center">
-        <canvas id="chartActivite" height="260"></canvas>
+      <div class="card-body">
+        <canvas id="chartActivite" height="240"></canvas>
       </div>
     </div>
   </div>
@@ -249,21 +281,40 @@ new Chart(document.getElementById('chartPyramide'), {
   }
 });
 
-// Camembert activités
+// Barres horizontales activités
 new Chart(document.getElementById('chartActivite'), {
-  type: 'doughnut',
+  type: 'bar',
   data: {
     labels: actLabels,
     datasets: [{
       data: actData,
-      backgroundColor: ['#1A6B4A','#C95A1A','#2D5FA8','#8C8677','#5a2d82','#C8C3B5'],
-      borderWidth: 2,
-      borderColor: '#fff',
+      backgroundColor: ['#1A6B4A','#C95A1A','#2D5FA8','#8C8677','#5a2d82','#b0b3b8'],
+      borderRadius: 4,
+      borderSkipped: false,
     }]
   },
   options: {
+    indexAxis: 'y',
     responsive: true,
-    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ' ' + ctx.parsed.x + ' personnes'
+        }
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        grid: { color: 'rgba(0,0,0,0.05)' },
+        ticks: { font: { family: 'Inter', size: 11 } }
+      },
+      y: {
+        grid: { display: false },
+        ticks: { font: { family: 'Inter', size: 11 } }
+      }
+    }
   }
 });
 

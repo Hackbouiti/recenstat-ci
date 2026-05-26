@@ -1,10 +1,10 @@
 :root {
   --ink:        #1A1A18;
-  --parch:      #FAF8F3;
-  --parch2:     #F2EFE8;
-  --stone:      #E6E2D8;
-  --stone2:     #C8C3B5;
-  --dust:       #8C8677;
+  --parch:      #F0F2F5;   /* fond page — gris clair (style Facebook/IG) */
+  --parch2:     #E4E6EB;   /* fond secondaire */
+  --stone:      #CED0D4;   /* bordures */
+  --stone2:     #8A8D91;   /* texte secondaire */
+  --dust:       #65676B;
   --orange:     #C95A1A;
   --orange-lt:  #F5E6D8;
   --em:         #1A6B4A;
@@ -160,9 +160,9 @@ a:hover { color: var(--em-dk); text-decoration: underline; }
 
 .kpi-card .kpi-value {
   font-family: 'Inter', sans-serif;
-  font-size: 2rem;
+  font-size: 1.9rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: normal;
   line-height: 1.1;
   color: var(--ink);
 }
